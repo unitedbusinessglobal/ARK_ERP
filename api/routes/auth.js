@@ -2,10 +2,11 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma.js";
 import { signToken } from "../lib/auth.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
-router.post("/login", async (req, res) => {
+router.post("/login", asyncHandler(async (req, res) => {
   const { email, password } = req.body || {};
   if (!email || !password) {
     return res.status(400).json({ error: "email and password are required" });
@@ -26,6 +27,6 @@ router.post("/login", async (req, res) => {
     token,
     user: { id: user.id, name: user.name, email: user.email, role: user.role },
   });
-});
+}));
 
 export default router;

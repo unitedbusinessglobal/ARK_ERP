@@ -3,38 +3,53 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../lib/auth.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
 function crud(resourceName, model, { uniqueField, buildData }) {
   const sub = Router();
 
-  sub.get("/", requireAuth, async (req, res) => {
-    const records = await model.findMany({ orderBy: { name: "asc" } }).catch(() =>
-      model.findMany()
-    );
-    res.json(records);
-  });
+  sub.get(
+    "/",
+    requireAuth,
+    asyncHandler(async (req, res) => {
+      const records = await model.findMany({ orderBy: { name: "asc" } }).catch(() =>
+        model.findMany()
+      );
+      res.json(records);
+    })
+  );
 
-  sub.post("/", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    try {
-      const data = buildData(req.body);
-      const record = await model.create({ data });
-      res.status(201).json(record);
-    } catch (err) {
-      handleWriteError(res, err, uniqueField);
-    }
-  });
+  sub.post(
+    "/",
+    requireAuth,
+    requireRole("ADMIN"),
+    asyncHandler(async (req, res) => {
+      try {
+        const data = buildData(req.body);
+        const record = await model.create({ data });
+        res.status(201).json(record);
+      } catch (err) {
+        handleWriteError(res, err, uniqueField);
+      }
+    })
+  );
 
-  sub.put("/:id", requireAuth, requireRole("ADMIN"), async (req, res) => {
-    try {
-      const data = buildData(req.body);
-      const record = await model.update({ where: { id: req.params.id }, data });
-      res.json(record);
-    } catch (err) {
-      handleWriteError(res, err, uniqueField);
-    }
-  });
+  sub.put(
+    "/:id",
+    requireAuth,
+    requireRole("ADMIN"),
+    asyncHandler(async (req, res) => {
+      try {
+        const data = buildData(req.body);
+        const record = await model.update({ where: { id: req.params.id }, data });
+        res.json(record);
+      } catch (err) {
+        handleWriteError(res, err, uniqueField);
+      }
+    })
+  );
 
   return sub;
 }

@@ -5,10 +5,11 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../lib/auth.js";
 import { sumSaleLines } from "../lib/calc.js";
 import { nextBillNumber } from "../lib/billNumber.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, asyncHandler(async (req, res) => {
   const { customerId, date } = req.query;
   const where = {};
   if (customerId) where.customerId = customerId;
@@ -24,10 +25,10 @@ router.get("/", requireAuth, async (req, res) => {
     orderBy: { generatedAt: "desc" },
   });
   res.json(bills);
-});
+}));
 
 // Fetch/reprint — re-renders from stored data (FR-007).
-router.get("/:id", requireAuth, async (req, res) => {
+router.get("/:id", requireAuth, asyncHandler(async (req, res) => {
   const bill = await prisma.customerBill.findUnique({
     where: { id: req.params.id },
     include: {
@@ -47,18 +48,18 @@ router.get("/:id", requireAuth, async (req, res) => {
   });
   if (!bill) return res.status(404).json({ error: "Customer bill not found" });
   res.json(bill);
-});
+}));
 
-router.post("/:id/reprint", requireAuth, requireRole("ADMIN", "BILLING", "AUDITOR"), async (req, res) => {
+router.post("/:id/reprint", requireAuth, requireRole("ADMIN", "BILLING", "AUDITOR"), asyncHandler(async (req, res) => {
   const bill = await prisma.customerBill.update({
     where: { id: req.params.id },
     data: { status: "REPRINTED" },
   });
   res.json(bill);
-});
+}));
 
 // Generate: pick existing sale_lines for a customer/date, snapshot the total (FR-002).
-router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), async (req, res) => {
+router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), asyncHandler(async (req, res) => {
   const { customerId, billDate, saleLineIds, language } = req.body || {};
 
   if (!customerId || !billDate || !Array.isArray(saleLineIds) || saleLineIds.length === 0) {
@@ -104,6 +105,6 @@ router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), async (req, res) 
   });
 
   res.status(201).json(bill);
-});
+}));
 
 export default router;

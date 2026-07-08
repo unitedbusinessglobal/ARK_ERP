@@ -5,10 +5,11 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../lib/auth.js";
 import { computeSaleLineAmount } from "../lib/calc.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, asyncHandler(async (req, res) => {
   const { date, vehicleId } = req.query;
   const where = {};
   if (date) {
@@ -30,9 +31,9 @@ router.get("/", requireAuth, async (req, res) => {
     orderBy: { auctionDate: "desc" },
   });
   res.json(entries);
-});
+}));
 
-router.get("/:id", requireAuth, async (req, res) => {
+router.get("/:id", requireAuth, asyncHandler(async (req, res) => {
   const entry = await prisma.auctionEntry.findUnique({
     where: { id: req.params.id },
     include: {
@@ -44,11 +45,11 @@ router.get("/:id", requireAuth, async (req, res) => {
   });
   if (!entry) return res.status(404).json({ error: "Auction entry not found" });
   res.json(entry);
-});
+}));
 
 // Validation before save (architecture §1, FR-001): vehicle/plantain/stock type
 // must exist, and every sale line needs a customer, rate and quantity > 0.
-router.post("/", requireAuth, requireRole("ADMIN", "DATA_ENTRY"), async (req, res) => {
+router.post("/", requireAuth, requireRole("ADMIN", "DATA_ENTRY"), asyncHandler(async (req, res) => {
   const { vehicleId, auctionDate, plantainTypeId, stockTypeId, saleLines } = req.body || {};
 
   if (!vehicleId || !auctionDate || !plantainTypeId || !stockTypeId) {
@@ -98,6 +99,6 @@ router.post("/", requireAuth, requireRole("ADMIN", "DATA_ENTRY"), async (req, re
   });
 
   res.status(201).json(entry);
-});
+}));
 
 export default router;

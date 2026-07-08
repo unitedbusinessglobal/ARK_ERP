@@ -4,10 +4,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../lib/auth.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
-router.get("/day-wise-customer", requireAuth, async (req, res) => {
+router.get("/day-wise-customer", requireAuth, asyncHandler(async (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ error: "date query param is required" });
 
@@ -29,6 +30,6 @@ router.get("/day-wise-customer", requireAuth, async (req, res) => {
   }
 
   res.json({ date, customers: Object.values(byCustomer) });
-});
+}));
 
 export default router;

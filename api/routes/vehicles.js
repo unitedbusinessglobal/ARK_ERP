@@ -3,10 +3,11 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../lib/auth.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, asyncHandler(async (req, res) => {
   const { farmerAgentId } = req.query;
   const vehicles = await prisma.vehicle.findMany({
     where: farmerAgentId ? { farmerAgentId } : undefined,
@@ -14,9 +15,9 @@ router.get("/", requireAuth, async (req, res) => {
     orderBy: { arrivalDate: "desc" },
   });
   res.json(vehicles);
-});
+}));
 
-router.post("/", requireAuth, requireRole("ADMIN", "DATA_ENTRY"), async (req, res) => {
+router.post("/", requireAuth, requireRole("ADMIN", "DATA_ENTRY"), asyncHandler(async (req, res) => {
   const { vehicleRef, farmerAgentId, arrivalDate, vehicleFare } = req.body || {};
   if (!vehicleRef || !farmerAgentId || !arrivalDate) {
     return res
@@ -42,6 +43,6 @@ router.post("/", requireAuth, requireRole("ADMIN", "DATA_ENTRY"), async (req, re
     console.error(err);
     res.status(500).json({ error: "Unexpected error" });
   }
-});
+}));
 
 export default router;

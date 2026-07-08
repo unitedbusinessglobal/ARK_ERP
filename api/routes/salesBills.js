@@ -6,10 +6,11 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../lib/auth.js";
 import { computeSalesBillTotals } from "../lib/calc.js";
 import { nextBillNumber } from "../lib/billNumber.js";
+import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", requireAuth, asyncHandler(async (req, res) => {
   const { vehicleId, farmerAgentId } = req.query;
   const where = {};
   if (vehicleId) where.vehicleId = vehicleId;
@@ -21,9 +22,9 @@ router.get("/", requireAuth, async (req, res) => {
     orderBy: { generatedAt: "desc" },
   });
   res.json(bills);
-});
+}));
 
-router.get("/:id", requireAuth, async (req, res) => {
+router.get("/:id", requireAuth, asyncHandler(async (req, res) => {
   const bill = await prisma.salesBill.findUnique({
     where: { id: req.params.id },
     include: {
@@ -40,10 +41,10 @@ router.get("/:id", requireAuth, async (req, res) => {
   });
   if (!bill) return res.status(404).json({ error: "Sales bill not found" });
   res.json(bill);
-});
+}));
 
 // Generate for a single vehicle/date range (Phase 1: single day, salePeriodFrom = salePeriodTo).
-router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), async (req, res) => {
+router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), asyncHandler(async (req, res) => {
   const {
     vehicleId,
     salePeriodFrom,
@@ -117,6 +118,6 @@ router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), async (req, res) 
   });
 
   res.status(201).json(bill);
-});
+}));
 
 export default router;
