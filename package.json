@@ -1,0 +1,42 @@
+{
+  "name": "ark-plantain-mundy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ARK Plantain Mundy Billing Application (Phase 1: core transactional flow)",
+  "type": "module",
+  "scripts": {
+    "dev:api": "node api/index.js",
+    "dev:web": "vite",
+    "dev": "concurrently \"npm:dev:api\" \"npm:dev:web\"",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "node prisma/seed.js",
+    "lint:check": "node --check api/index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.19.1",
+    "axios": "^1.7.7",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "pdf-lib": "^1.17.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.0.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.0.1",
+    "postcss": "^8.4.47",
+    "prisma": "^5.19.1",
+    "tailwindcss": "^3.4.13",
+    "vite": "^5.4.7"
+  }
+}

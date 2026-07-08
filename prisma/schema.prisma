@@ -1,0 +1,221 @@
+// ARK Plantain Mundy Billing Application
+// Schema matches the ERD in ARK_Plantain_Mundy_Architecture.md (§4)
+// auction_entries -> sale_lines is the single source of truth; bills are derived views.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum UserRole {
+  ADMIN
+  DATA_ENTRY
+  BILLING
+  AUDITOR
+}
+
+enum BillLanguage {
+  EN
+  TA
+}
+
+enum BillStatus {
+  FINAL
+  REPRINTED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         UserRole   @default(DATA_ENTRY)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  name          String
+  nameTa        String?        @map("name_ta")
+  initials      String         @unique
+  createdAt     DateTime       @default(now()) @map("created_at")
+  saleLines     SaleLine[]
+  customerBills CustomerBill[]
+
+  @@map("customers")
+}
+
+model FarmerAgent {
+  id         String      @id @default(uuid())
+  name       String
+  nameTa     String?     @map("name_ta")
+  phone      String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  vehicles   Vehicle[]
+  salesBills SalesBill[]
+
+  @@map("farmers_agents")
+}
+
+model PlantainType {
+  id             String         @id @default(uuid())
+  code           String         @unique
+  nameEn         String         @map("name_en")
+  nameTa         String?        @map("name_ta")
+  auctionEntries AuctionEntry[]
+
+  @@map("plantain_types")
+}
+
+model StockType {
+  id             String         @id @default(uuid())
+  code           String         @unique
+  nameEn         String         @map("name_en")
+  nameTa         String?        @map("name_ta")
+  auctionEntries AuctionEntry[]
+
+  @@map("stock_types")
+}
+
+model Vehicle {
+  id             String         @id @default(uuid())
+  vehicleRef     String         @unique @map("vehicle_ref")
+  farmerAgentId  String         @map("farmer_agent_id")
+  farmerAgent    FarmerAgent    @relation(fields: [farmerAgentId], references: [id])
+  arrivalDate    DateTime       @map("arrival_date")
+  vehicleFare    Decimal?       @map("vehicle_fare") @db.Decimal(10, 2)
+  createdBy      String?        @map("created_by")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  auctionEntries AuctionEntry[]
+  salesBills     SalesBill[]
+
+  @@map("vehicles")
+}
+
+model AuctionEntry {
+  id             String       @id @default(uuid())
+  vehicleId      String       @map("vehicle_id")
+  vehicle        Vehicle      @relation(fields: [vehicleId], references: [id])
+  auctionDate    DateTime     @map("auction_date")
+  plantainTypeId String       @map("plantain_type_id")
+  plantainType   PlantainType @relation(fields: [plantainTypeId], references: [id])
+  stockTypeId    String       @map("stock_type_id")
+  stockType      StockType    @relation(fields: [stockTypeId], references: [id])
+  createdBy      String?      @map("created_by")
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedBy      String?      @map("updated_by")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+  saleLines      SaleLine[]
+
+  @@map("auction_entries")
+}
+
+// NOTE: `amount` is application-computed (rate * quantity) at write time rather than
+// a Postgres GENERATED column, so it stays portable across a plain `prisma migrate`.
+// If a DB-enforced generated column is required, add it via a manual SQL migration.
+model SaleLine {
+  id                String             @id @default(uuid())
+  auctionEntryId    String             @map("auction_entry_id")
+  auctionEntry      AuctionEntry       @relation(fields: [auctionEntryId], references: [id])
+  customerId        String             @map("customer_id")
+  customer          Customer           @relation(fields: [customerId], references: [id])
+  customerInitials  String             @map("customer_initials")
+  rate              Decimal            @db.Decimal(10, 2)
+  quantity          Decimal            @db.Decimal(10, 2)
+  amount            Decimal            @db.Decimal(12, 2)
+  createdBy         String?            @map("created_by")
+  createdAt         DateTime           @default(now()) @map("created_at")
+  customerBillLines CustomerBillLine[]
+  salesBillLines    SalesBillLine[]
+
+  @@map("sale_lines")
+}
+
+model CustomerBill {
+  id          String             @id @default(uuid())
+  billNo      String             @unique @map("bill_no")
+  customerId  String             @map("customer_id")
+  customer    Customer           @relation(fields: [customerId], references: [id])
+  billDate    DateTime           @map("bill_date")
+  language    BillLanguage       @default(EN)
+  grandTotal  Decimal            @map("grand_total") @db.Decimal(12, 2)
+  status      BillStatus         @default(FINAL)
+  generatedBy String?            @map("generated_by")
+  generatedAt DateTime           @default(now()) @map("generated_at")
+  lines       CustomerBillLine[]
+
+  @@map("customer_bills")
+}
+
+model CustomerBillLine {
+  id             String       @id @default(uuid())
+  customerBillId String       @map("customer_bill_id")
+  customerBill   CustomerBill @relation(fields: [customerBillId], references: [id])
+  saleLineId     String       @map("sale_line_id")
+  saleLine       SaleLine     @relation(fields: [saleLineId], references: [id])
+
+  @@map("customer_bill_lines")
+}
+
+model SalesBill {
+  id               String          @id @default(uuid())
+  billNo           String          @unique @map("bill_no")
+  vehicleId        String          @map("vehicle_id")
+  vehicle          Vehicle         @relation(fields: [vehicleId], references: [id])
+  farmerAgentId    String          @map("farmer_agent_id")
+  farmerAgent      FarmerAgent     @relation(fields: [farmerAgentId], references: [id])
+  salePeriodFrom   DateTime        @map("sale_period_from")
+  salePeriodTo     DateTime        @map("sale_period_to")
+  grossSalesAmount Decimal         @map("gross_sales_amount") @db.Decimal(12, 2)
+  commission       Decimal         @db.Decimal(12, 2)
+  vehicleFare      Decimal         @map("vehicle_fare") @db.Decimal(12, 2)
+  netPayableAmount Decimal         @map("net_payable_amount") @db.Decimal(12, 2)
+  language         BillLanguage    @default(EN)
+  generatedBy      String?         @map("generated_by")
+  generatedAt      DateTime        @default(now()) @map("generated_at")
+  lines            SalesBillLine[]
+
+  @@map("sales_bills")
+}
+
+model SalesBillLine {
+  id          String    @id @default(uuid())
+  salesBillId String    @map("sales_bill_id")
+  salesBill   SalesBill @relation(fields: [salesBillId], references: [id])
+  saleLineId  String    @map("sale_line_id")
+  saleLine    SaleLine  @relation(fields: [saleLineId], references: [id])
+
+  @@map("sales_bill_lines")
+}
+
+model LabelI18n {
+  labelKey  String @map("label_key")
+  lang      String
+  labelText String @map("label_text")
+
+  @@id([labelKey, lang])
+  @@map("labels_i18n")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  action     String
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  reason     String?
+  userId     String?  @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("audit_log")
+}
