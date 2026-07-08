@@ -5,6 +5,7 @@
   "description": "ARK Plantain Mundy Billing Application (Phase 1: core transactional flow)",
   "type": "module",
   "scripts": {
+    "postinstall": "prisma generate",
     "dev:api": "node api/index.js",
     "dev:web": "vite",
     "dev": "concurrently \"npm:dev:api\" \"npm:dev:web\"",
