@@ -33,7 +33,7 @@ Point `DATABASE_URL`/`DIRECT_URL` at any Postgres instance (e.g. `docker run -p 
 
 1. Push this repo to GitHub.
 2. Import into Vercel; set `DATABASE_URL`, `DIRECT_URL`, `JWT_SECRET` as environment variables (see `.env.example`).
-3. Vercel builds the frontend (`npm run build` → `dist/`) and deploys `api/index.js` as a serverless function; `vercel.json` rewrites all `/api/*` traffic to it.
+3. Vercel builds the frontend (`npm run build` → `dist/`) and deploys `api/index.js` as the *only* file in `/api` (everything it needs lives in `/server` — Vercel treats every file directly under `/api` as its own function, so keeping the folder to one file avoids hitting the Hobby plan's 12-function-per-deployment cap); `vercel.json` rewrites all `/api/*` traffic to it.
 4. Run `npx prisma migrate deploy` against the production `DATABASE_URL` (or the `-pooler` + `DIRECT_URL` pair) before first use.
 
 ## What's implemented (Phase 1 / Epic AE-1)
@@ -48,7 +48,7 @@ Point `DATABASE_URL`/`DIRECT_URL` at any Postgres instance (e.g. `docker run -p 
 
 ## Open items carried over from the architecture doc (§10)
 
-These are resolved with overridable defaults in `api/lib/calc.js` and `api/lib/billNumber.js` so Phase 1 works today, but should be confirmed with the business:
+These are resolved with overridable defaults in `server/lib/calc.js` and `server/lib/billNumber.js` so Phase 1 works today, but should be confirmed with the business:
 
 - **Commission**: defaults to `DEFAULT_COMMISSION_PERCENT` (5%) of gross, overridable per sales bill via `commissionOverride` in the API request.
 - **Vehicle fare**: read from `vehicles.vehicle_fare` if set, overridable per sales bill via `vehicleFareOverride`.
@@ -58,7 +58,7 @@ These are resolved with overridable defaults in `api/lib/calc.js` and `api/lib/b
 
 ## Not yet built (later phases, per architecture §9)
 
-- Phase 2: multi-day consolidation per vehicle, day-wise customer report (stub only in `api/routes/reports.js`), search/reprint UI, registers.
+- Phase 2: multi-day consolidation per vehicle, day-wise customer report (stub only in `server/routes/reports.js`), search/reprint UI, registers.
 - Phase 3: bilingual Tamil/English UI (`react-i18next`), `labels_i18n`-backed labels, Tamil PDF/Excel export.
 - Phase 4: full RBAC enforcement in the UI (API middleware exists — `requireRole` — but the UI doesn't yet hide unauthorized actions) and the audit-log correction workflow (table exists, nothing writes to it yet).
 - Phase 5: additional registers (customer bill register, sales register, vehicle-wise consolidation, plantain-type sales report).

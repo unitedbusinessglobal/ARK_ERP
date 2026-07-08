@@ -24,21 +24,31 @@ structural changes.
 1. **Single Express app instead of one file per API resource.** The doc's
    §7.4 structure shows `api/auth/`, `api/auction-entries/`, etc. as separate
    Vercel functions. This repo instead has one `api/index.js` Express app
-   with `api/routes/*.js` routers, deployed as a single Vercel function via
-   the `vercel.json` rewrite. Reasoning: far simpler local dev (one process,
-   one port) and avoids duplicating Prisma client init per function. If cold
-   start or function size ever becomes a problem, split by resource then.
-2. **`sale_lines.amount` is computed in application code**, not a Postgres
+   with routers imported from `server/routes/*.js`, deployed as a single
+   Vercel function via the `vercel.json` rewrite. Reasoning: far simpler
+   local dev (one process, one port) and avoids duplicating Prisma client
+   init per function. If cold start or function size ever becomes a
+   problem, split by resource then.
+2. **Route/lib helper modules live under `/server`, not `/api`.** Vercel's
+   zero-config Node builder treats *every* `.js` file directly under `/api`
+   as its own Serverless Function, regardless of whether anything routes
+   traffic to it. With helpers alongside `index.js` in `/api`, a 13th file
+   pushed the deployment over the Hobby plan's 12-function cap and it failed
+   with `exceeded_serverless_functions_per_deployment`. Keeping only
+   `api/index.js` in `/api` and importing everything else from `../server/`
+   means exactly one function is ever created, no matter how many
+   route/lib files exist. Do not add new files directly under `/api`.
+3. **`sale_lines.amount` is computed in application code**, not a Postgres
    `GENERATED ALWAYS AS` column — Prisma migrate doesn't model those cleanly.
-   Computed in `api/lib/calc.js#computeSaleLineAmount`.
-3. **PDF/Excel generation not implemented yet** — bills render as HTML/print
+   Computed in `server/lib/calc.js#computeSaleLineAmount`.
+4. **PDF/Excel generation not implemented yet** — bills render as HTML/print
    only for now. `pdf-lib` and `exceljs` are dependencies, unused until that
    work is picked up.
 
 ## Open business decisions (see README "Open items")
 
 Commission %, vehicle fare source, bill numbering mode, and default language
-are all confirmed defaults in `api/lib/calc.js` / `api/lib/billNumber.js`,
+are all confirmed defaults in `server/lib/calc.js` / `server/lib/billNumber.js`,
 overridable via env vars or per-request fields — not hardcoded assumptions
 baked into the schema. Check with the business before changing the defaults
 silently; do change the env var / override rather than editing the function
@@ -53,3 +63,6 @@ signature if the answer turns out to be "it varies."
   `customer-bills` or `sales-bills`. A sale line can only be attached to one
   bill of each type (enforced at write time, not yet at the DB level via a
   unique constraint — consider adding one if this becomes a real bug source).
+
+
+Before we make any changes to the product, we document it in Jira and create a userstory for it and once the change it done, we update it as done.
