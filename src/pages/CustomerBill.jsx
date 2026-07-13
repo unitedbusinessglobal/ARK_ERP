@@ -12,11 +12,17 @@ export default function CustomerBill() {
   const [selectedLineIds, setSelectedLineIds] = useState([]);
   const [bill, setBill] = useState(null);
   const [error, setError] = useState("");
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     api.get("/masters/customers").then((r) => setCustomers(r.data));
     api.get("/settings").then((r) => setSettings(r.data));
+    loadHistory();
   }, []);
+
+  function loadHistory() {
+    api.get("/customer-bills").then((r) => setHistory(r.data));
+  }
 
   useEffect(() => {
     setBill(null);
@@ -49,9 +55,22 @@ export default function CustomerBill() {
       // Re-fetch with full itemized line details for the printed bill.
       const full = await api.get(`/customer-bills/${data.id}`);
       setBill(full.data);
+      loadHistory();
     } catch (err) {
-      setError(err.response?.data?.error || "Could not generate bill");
+      if (err.response?.status === 409) {
+        setError(
+          "One or more of these sale lines are already on a bill — see Bill History below to view it."
+        );
+      } else {
+        setError(err.response?.data?.error || "Could not generate bill");
+      }
     }
+  }
+
+  async function viewBill(id) {
+    setError("");
+    const full = await api.get(`/customer-bills/${id}`);
+    setBill(full.data);
   }
 
   return (
@@ -126,6 +145,43 @@ export default function CustomerBill() {
           >
             Generate Bill
           </button>
+
+          <div className="pt-6">
+            <h2 className="text-sm font-semibold text-gray-600 mb-2">Bill History</h2>
+            {history.length === 0 ? (
+              <p className="text-sm text-gray-400">No customer bills generated yet.</p>
+            ) : (
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="text-left border-b text-gray-500">
+                    <th className="py-1">Bill No</th>
+                    <th>Buyer</th>
+                    <th>Date</th>
+                    <th className="text-right">Grand Total</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {history.map((h) => (
+                    <tr key={h.id} className="border-b">
+                      <td className="py-1">{h.billNo}</td>
+                      <td>
+                        {h.customer?.name}
+                        {h.customer?.initials && ` (${h.customer.initials})`}
+                      </td>
+                      <td>{new Date(h.billDate).toLocaleDateString("en-IN")}</td>
+                      <td className="text-right">₹{h.grandTotal}</td>
+                      <td className="text-right">
+                        <button onClick={() => viewBill(h.id)} className="text-green-700 underline text-xs">
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       )}
 
@@ -191,7 +247,7 @@ export default function CustomerBill() {
             onClick={() => setBill(null)}
             className="no-print mt-6 text-sm underline text-gray-500"
           >
-            New bill
+            Back to Generate / History
           </button>
         </div>
       )}
