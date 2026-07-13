@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
+import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
 import Masters from "./pages/Masters.jsx";
 import AuctionEntry from "./pages/AuctionEntry.jsx";
@@ -10,6 +11,14 @@ function RequireAuth({ children }) {
   const user = getUser();
   if (!user) return <Navigate to="/login" replace />;
   return children;
+}
+
+// Public landing page at "/" (AE-10). Signed-in users skip straight to the
+// app instead of seeing marketing content again.
+function HomeRoute() {
+  const user = getUser();
+  if (user) return <Navigate to="/auction-entry" replace />;
+  return <Landing />;
 }
 
 function Layout({ children }) {
@@ -35,6 +44,16 @@ function Layout({ children }) {
         </button>
       </nav>
       {children}
+      <footer className="no-print text-center text-xs text-gray-400 py-6">
+        <a
+          href="https://www.ainformatiq.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-gray-600"
+        >
+          Powered by AInformatIQ
+        </a>
+      </footer>
     </div>
   );
 }
@@ -43,6 +62,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<HomeRoute />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/*"
@@ -50,7 +70,6 @@ export default function App() {
             <RequireAuth>
               <Layout>
                 <Routes>
-                  <Route path="/" element={<Navigate to="/auction-entry" replace />} />
                   <Route path="/auction-entry" element={<AuctionEntry />} />
                   <Route path="/customer-bill" element={<CustomerBill />} />
                   <Route path="/sales-bill" element={<SalesBill />} />
