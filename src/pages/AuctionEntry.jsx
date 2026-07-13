@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../lib/api.js";
 
 export default function AuctionEntry() {
@@ -41,6 +42,10 @@ export default function AuctionEntry() {
   async function handleAddVehicle(e) {
     e.preventDefault();
     setError("");
+    if (!newVehicle.farmerAgentId) {
+      setError("Add a Farmer/Agent in Masters first, then pick one here.");
+      return;
+    }
     try {
       const { data } = await api.post("/vehicles", newVehicle);
       setVehicles([data, ...vehicles]);
@@ -87,6 +92,21 @@ export default function AuctionEntry() {
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div>
         <h1 className="text-2xl font-semibold mb-4">Auction Entry</h1>
+
+        {(farmersAgents.length === 0 || customers.length === 0) && (
+          <div className="mb-4 bg-yellow-50 border border-yellow-200 text-yellow-800 text-sm rounded p-3">
+            {farmersAgents.length === 0 && customers.length === 0
+              ? "No farmers/agents or customers set up yet. "
+              : farmersAgents.length === 0
+              ? "No farmers/agents set up yet. "
+              : "No customers set up yet. "}
+            Add them on the{" "}
+            <Link to="/masters" className="underline font-medium">
+              Masters
+            </Link>{" "}
+            page before entering a vehicle or sale line.
+          </div>
+        )}
 
         <details className="mb-4 bg-gray-50 p-4 rounded">
           <summary className="cursor-pointer font-medium">Add a new vehicle/arrival</summary>

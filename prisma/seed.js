@@ -46,6 +46,31 @@ async function main() {
     });
   }
 
+  // Starter customers and farmers/agents (AE-11) -- without these the
+  // Auction Entry dropdowns are empty on first run and submitting the form
+  // fails validation with no clue why. `initials` is unique on Customer so
+  // it upserts cleanly; FarmerAgent has no unique field, so guard with a
+  // findFirst check to stay idempotent on repeat seed runs.
+  const customers = [
+    { name: "Sample Traders", initials: "ST" },
+    { name: "City Wholesale", initials: "CW" },
+  ];
+  for (const c of customers) {
+    await prisma.customer.upsert({
+      where: { initials: c.initials },
+      update: {},
+      create: c,
+    });
+  }
+
+  const farmersAgents = [{ name: "Sample Farmer", phone: null }];
+  for (const fa of farmersAgents) {
+    const existing = await prisma.farmerAgent.findFirst({ where: { name: fa.name } });
+    if (!existing) {
+      await prisma.farmerAgent.create({ data: fa });
+    }
+  }
+
   console.log("Seed complete. Admin login: admin@arkplantainmundy.local / changeme123");
 }
 
