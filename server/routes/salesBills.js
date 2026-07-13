@@ -53,6 +53,9 @@ router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), asyncHandler(asyn
     commissionPercent,
     commissionOverride,
     vehicleFareOverride,
+    weighingCharges,
+    coolieCharges,
+    marketFee,
   } = req.body || {};
 
   if (!vehicleId || !salePeriodFrom) {
@@ -91,6 +94,9 @@ router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), asyncHandler(asyn
     commissionPercent,
     commissionOverride,
     vehicleFareOverride,
+    weighingCharges,
+    coolieCharges,
+    marketFee,
   });
 
   const billNo = await nextBillNumber(prisma, {
@@ -109,6 +115,9 @@ router.post("/", requireAuth, requireRole("ADMIN", "BILLING"), asyncHandler(asyn
       grossSalesAmount: totals.grossSalesAmount,
       commission: totals.commission,
       vehicleFare: totals.vehicleFare,
+      weighingCharges: totals.weighingCharges,
+      coolieCharges: totals.coolieCharges,
+      marketFee: totals.marketFee,
       netPayableAmount: totals.netPayableAmount,
       language: language === "TA" ? "TA" : "EN",
       generatedBy: req.user?.sub,

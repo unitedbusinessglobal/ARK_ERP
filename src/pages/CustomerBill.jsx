@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api.js";
+import BillHeader from "../components/BillHeader.jsx";
+import BillFooter from "../components/BillFooter.jsx";
 
 export default function CustomerBill() {
+  const [settings, setSettings] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [customerId, setCustomerId] = useState("");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
@@ -12,6 +15,7 @@ export default function CustomerBill() {
 
   useEffect(() => {
     api.get("/masters/customers").then((r) => setCustomers(r.data));
+    api.get("/settings").then((r) => setSettings(r.data));
   }, []);
 
   useEffect(() => {
@@ -22,13 +26,11 @@ export default function CustomerBill() {
     }
   }, [date]);
 
-  const availableLines = entries
-    .flatMap((e) =>
-      e.saleLines
-        .filter((l) => !customerId || l.customerId === customerId)
-        .map((l) => ({ ...l, entry: e }))
-    )
-    .filter((l) => l.customerBillLines === undefined || true);
+  const availableLines = entries.flatMap((e) =>
+    e.saleLines
+      .filter((l) => !customerId || l.customerId === customerId)
+      .map((l) => ({ ...l, entry: e }))
+  );
 
   function toggleLine(id) {
     setSelectedLineIds((prev) =>
@@ -44,7 +46,9 @@ export default function CustomerBill() {
         billDate: date,
         saleLineIds: selectedLineIds,
       });
-      setBill(data);
+      // Re-fetch with full itemized line details for the printed bill.
+      const full = await api.get(`/customer-bills/${data.id}`);
+      setBill(full.data);
     } catch (err) {
       setError(err.response?.data?.error || "Could not generate bill");
     }
@@ -126,19 +130,66 @@ export default function CustomerBill() {
       )}
 
       {bill && (
-        <div className="border p-6 rounded">
-          <div className="flex justify-between mb-4">
-            <h2 className="text-lg font-semibold">Customer Bill — {bill.billNo}</h2>
-            <button onClick={() => window.print()} className="no-print text-sm underline">
+        <div className="border p-6 rounded bg-white">
+          <div className="flex justify-end mb-2 no-print">
+            <button onClick={() => window.print()} className="text-sm underline">
               Print
             </button>
           </div>
-          <p>Customer: {bill.customer?.name}</p>
-          <p>Date: {new Date(bill.billDate).toLocaleDateString()}</p>
-          <p className="text-xl font-bold mt-4">Grand Total: {bill.grandTotal}</p>
+
+          <BillHeader
+            settings={settings}
+            title="Customer Bill"
+            billNo={bill.billNo}
+            date={new Date(bill.billDate).toLocaleDateString("en-IN")}
+          />
+
+          <p className="text-sm mb-3">
+            <span className="text-gray-500">Buyer: </span>
+            <span className="font-semibold">{bill.customer?.name}</span>
+            {bill.customer?.initials && ` (${bill.customer.initials})`}
+          </p>
+
+          <table className="w-full border-collapse text-sm mb-4">
+            <thead>
+              <tr className="text-left border-y-2 border-black">
+                <th className="py-1">#</th>
+                <th>Vehicle</th>
+                <th>Plantain</th>
+                <th>Stock</th>
+                <th className="text-right">Qty</th>
+                <th className="text-right">Rate</th>
+                <th className="text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bill.lines?.map((l, i) => (
+                <tr key={l.id} className="border-b">
+                  <td className="py-1">{i + 1}</td>
+                  <td>{l.saleLine?.auctionEntry?.vehicle?.vehicleRef}</td>
+                  <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
+                  <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
+                  <td className="text-right">{l.saleLine?.quantity}</td>
+                  <td className="text-right">{l.saleLine?.rate}</td>
+                  <td className="text-right">{l.saleLine?.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-black font-bold">
+                <td colSpan={6} className="text-right py-2">
+                  Grand Total
+                </td>
+                <td className="text-right py-2">₹{bill.grandTotal}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <BillFooter settings={settings} companyLabel="For the Firm" partyLabel="Buyer Signature" />
+
           <button
             onClick={() => setBill(null)}
-            className="no-print mt-4 text-sm underline text-gray-500"
+            className="no-print mt-6 text-sm underline text-gray-500"
           >
             New bill
           </button>

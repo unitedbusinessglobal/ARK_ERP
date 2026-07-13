@@ -22,6 +22,7 @@ import auctionEntriesRoutes from "../server/routes/auctionEntries.js";
 import customerBillsRoutes from "../server/routes/customerBills.js";
 import salesBillsRoutes from "../server/routes/salesBills.js";
 import reportsRoutes from "../server/routes/reports.js";
+import settingsRoutes from "../server/routes/settings.js";
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/auction-entries", auctionEntriesRoutes);
 app.use("/api/customer-bills", customerBillsRoutes);
 app.use("/api/sales-bills", salesBillsRoutes);
 app.use("/api/reports", reportsRoutes);
+app.use("/api/settings", settingsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

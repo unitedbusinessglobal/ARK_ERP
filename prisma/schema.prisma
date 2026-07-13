@@ -177,6 +177,12 @@ model SalesBill {
   grossSalesAmount Decimal         @map("gross_sales_amount") @db.Decimal(12, 2)
   commission       Decimal         @db.Decimal(12, 2)
   vehicleFare      Decimal         @map("vehicle_fare") @db.Decimal(12, 2)
+  // Standard Coimbatore-mandi deduction line items (AE-12), alongside
+  // commission/vehicleFare above. Default 0 so existing rows/bills are
+  // unaffected; each is independently overridable per bill.
+  weighingCharges  Decimal         @default(0) @map("weighing_charges") @db.Decimal(12, 2)
+  coolieCharges    Decimal         @default(0) @map("coolie_charges") @db.Decimal(12, 2)
+  marketFee        Decimal         @default(0) @map("market_fee") @db.Decimal(12, 2)
   netPayableAmount Decimal         @map("net_payable_amount") @db.Decimal(12, 2)
   language         BillLanguage    @default(EN)
   generatedBy      String?         @map("generated_by")
@@ -194,6 +200,32 @@ model SalesBillLine {
   saleLine    SaleLine  @relation(fields: [saleLineId], references: [id])
 
   @@map("sales_bill_lines")
+}
+
+// Singleton (AE-12): admin-editable letterhead + footer details used to render
+// Customer Bill / Sales Bill in the standard Coimbatore commission-agent
+// format, instead of hardcoding a firm name/address into the print template.
+// Application code always reads/writes the single row with id "default".
+model OrganizationSettings {
+  id             String   @id @default("default")
+  companyName    String   @default("ARK Plantain Mundy")
+  addressLine1   String?  @map("address_line1")
+  addressLine2   String?  @map("address_line2")
+  city           String?
+  state          String?  @default("Tamil Nadu")
+  pincode        String?
+  phone          String?
+  email          String?
+  gstin          String?
+  apmcLicenseNo  String?  @map("apmc_license_no")
+  bankName       String?  @map("bank_name")
+  bankAccountNo  String?  @map("bank_account_no")
+  bankIfsc       String?  @map("bank_ifsc")
+  footerNote     String?  @map("footer_note")
+  updatedBy      String?  @map("updated_by")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@map("organization_settings")
 }
 
 model LabelI18n {

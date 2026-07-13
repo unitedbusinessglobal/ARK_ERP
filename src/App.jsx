@@ -5,6 +5,7 @@ import Masters from "./pages/Masters.jsx";
 import AuctionEntry from "./pages/AuctionEntry.jsx";
 import CustomerBill from "./pages/CustomerBill.jsx";
 import SalesBill from "./pages/SalesBill.jsx";
+import Settings from "./pages/Settings.jsx";
 import { getUser, clearSession } from "./lib/api.js";
 
 function RequireAuth({ children }) {
@@ -38,6 +39,7 @@ function Layout({ children }) {
         <Link to="/customer-bill">Customer Bill</Link>
         <Link to="/sales-bill">Sales Bill</Link>
         <Link to="/masters">Masters</Link>
+        {user?.role === "ADMIN" && <Link to="/settings">Billing Settings</Link>}
         <span className="ml-auto text-sm">{user?.name}</span>
         <button onClick={handleLogout} className="text-sm underline">
           Logout
@@ -74,6 +76,7 @@ export default function App() {
                   <Route path="/customer-bill" element={<CustomerBill />} />
                   <Route path="/sales-bill" element={<SalesBill />} />
                   <Route path="/masters" element={<Masters />} />
+                  <Route path="/settings" element={<Settings />} />
                 </Routes>
               </Layout>
             </RequireAuth>

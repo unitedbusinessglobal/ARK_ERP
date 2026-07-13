@@ -20,8 +20,12 @@ export function sumSaleLines(saleLines) {
 }
 
 /**
- * Sales bill calculation: gross - commission - vehicleFare = net payable.
- * Both commission and vehicle fare are modeled as deductions (BRD §11 assumption).
+ * Sales bill calculation: gross - commission - vehicleFare - weighingCharges
+ * - coolieCharges - marketFee = net payable. All five are modeled as
+ * deductions, matching standard Coimbatore commission-agent (aaratdar)
+ * practice (AE-12) as well as the BRD §11 assumption for commission/fare.
+ * weighing/coolie/market default to 0 so bills that don't need them are
+ * unaffected -- each is independently overridable per bill.
  */
 export function computeSalesBillTotals({
   saleLines,
@@ -29,6 +33,9 @@ export function computeSalesBillTotals({
   commissionPercent = DEFAULT_COMMISSION_PERCENT,
   commissionOverride,
   vehicleFareOverride,
+  weighingCharges,
+  coolieCharges,
+  marketFee,
 }) {
   const grossSalesAmount = sumSaleLines(saleLines);
 
@@ -40,12 +47,26 @@ export function computeSalesBillTotals({
   const resolvedVehicleFare =
     vehicleFareOverride != null ? round2(Number(vehicleFareOverride)) : round2(Number(vehicleFare) || 0);
 
-  const netPayableAmount = round2(grossSalesAmount - commission - resolvedVehicleFare);
+  const resolvedWeighingCharges = round2(Number(weighingCharges) || 0);
+  const resolvedCoolieCharges = round2(Number(coolieCharges) || 0);
+  const resolvedMarketFee = round2(Number(marketFee) || 0);
+
+  const netPayableAmount = round2(
+    grossSalesAmount -
+      commission -
+      resolvedVehicleFare -
+      resolvedWeighingCharges -
+      resolvedCoolieCharges -
+      resolvedMarketFee
+  );
 
   return {
     grossSalesAmount,
     commission,
     vehicleFare: resolvedVehicleFare,
+    weighingCharges: resolvedWeighingCharges,
+    coolieCharges: resolvedCoolieCharges,
+    marketFee: resolvedMarketFee,
     netPayableAmount,
   };
 }
