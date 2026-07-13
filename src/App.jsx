@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate } from "react-router-dom";
 import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login.jsx";
@@ -25,25 +26,67 @@ function HomeRoute() {
 function Layout({ children }) {
   const navigate = useNavigate();
   const user = getUser();
+  // Mobile nav (AE-14): the old single-row flex nav overflowed off-screen on
+  // narrow viewports, making Logout unreachable without horizontal scroll.
+  // Below sm, links + Logout collapse behind this toggle instead.
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleLogout() {
     clearSession();
     navigate("/login");
   }
 
+  const navLinks = (
+    <>
+      <Link to="/auction-entry" onClick={() => setMenuOpen(false)}>
+        Auction Entry
+      </Link>
+      <Link to="/customer-bill" onClick={() => setMenuOpen(false)}>
+        Customer Bill
+      </Link>
+      <Link to="/sales-bill" onClick={() => setMenuOpen(false)}>
+        Sales Bill
+      </Link>
+      <Link to="/masters" onClick={() => setMenuOpen(false)}>
+        Masters
+      </Link>
+      {user?.role === "ADMIN" && (
+        <Link to="/settings" onClick={() => setMenuOpen(false)}>
+          Billing Settings
+        </Link>
+      )}
+    </>
+  );
+
   return (
     <div>
-      <nav className="bg-green-800 text-white px-6 py-3 flex gap-6 items-center no-print">
-        <span className="font-semibold">ARK Plantain Mundy</span>
-        <Link to="/auction-entry">Auction Entry</Link>
-        <Link to="/customer-bill">Customer Bill</Link>
-        <Link to="/sales-bill">Sales Bill</Link>
-        <Link to="/masters">Masters</Link>
-        {user?.role === "ADMIN" && <Link to="/settings">Billing Settings</Link>}
-        <span className="ml-auto text-sm">{user?.name}</span>
-        <button onClick={handleLogout} className="text-sm underline">
-          Logout
-        </button>
+      <nav className="bg-green-800 text-white px-4 sm:px-6 py-3 no-print">
+        <div className="flex items-center gap-4">
+          <span className="font-semibold">ARK Plantain Mundy</span>
+          <div className="hidden sm:flex gap-6 items-center">{navLinks}</div>
+          <span className="hidden sm:inline ml-auto text-sm">{user?.name}</span>
+          <button onClick={handleLogout} className="hidden sm:inline text-sm underline">
+            Logout
+          </button>
+          <button
+            onClick={() => setMenuOpen((open) => !open)}
+            className="sm:hidden ml-auto text-sm border border-green-600 rounded px-3 py-1"
+            aria-label="Toggle navigation menu"
+          >
+            {menuOpen ? "Close" : "Menu"}
+          </button>
+        </div>
+        {menuOpen && (
+          <div className="sm:hidden mt-3 pt-3 border-t border-green-700 flex flex-col gap-3 text-sm pb-1">
+            {navLinks}
+            <div className="pt-2 mt-1 border-t border-green-700 flex items-center justify-between">
+              <span className="text-green-200">{user?.name}</span>
+              <button onClick={handleLogout} className="underline">
+                Logout
+              </button>
+            </div>
+          </div>
+        )}
       </nav>
       {children}
       <footer className="no-print text-center text-xs text-gray-400 py-6">

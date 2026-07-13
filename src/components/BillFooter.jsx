@@ -15,12 +15,14 @@ export default function BillFooter({ settings, companyLabel = "For the Firm", pa
           {settings.bankIfsc && ` · IFSC: ${settings.bankIfsc}`}
         </p>
       )}
-      <div className="flex justify-between text-sm pt-8">
-        <div className="text-center">
-          <div className="border-t border-gray-500 w-40 pt-1">{partyLabel}</div>
+      {/* AE-14: stack signature blocks on narrow screens instead of a fixed
+          160px-wide flex row, which overflowed the viewport on mobile. */}
+      <div className="flex flex-col sm:flex-row justify-between gap-6 sm:gap-0 text-sm pt-8">
+        <div className="text-center sm:text-center">
+          <div className="border-t border-gray-500 w-full sm:w-40 pt-1 mx-auto">{partyLabel}</div>
         </div>
         <div className="text-center">
-          <div className="border-t border-gray-500 w-40 pt-1">
+          <div className="border-t border-gray-500 w-full sm:w-40 pt-1 mx-auto">
             {companyLabel}
             <br />
             Authorized Signatory

@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../lib/api.js";
 import BillHeader from "../components/BillHeader.jsx";
 import BillFooter from "../components/BillFooter.jsx";
+import { downloadElementAsPdf } from "../lib/pdf.js";
 
 export default function CustomerBill() {
   const [settings, setSettings] = useState(null);
@@ -13,6 +14,7 @@ export default function CustomerBill() {
   const [bill, setBill] = useState(null);
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
+  const printRef = useRef(null);
 
   useEffect(() => {
     api.get("/masters/customers").then((r) => setCustomers(r.data));
@@ -73,11 +75,15 @@ export default function CustomerBill() {
     setBill(full.data);
   }
 
+  function handleDownload() {
+    downloadElementAsPdf(printRef.current, `CustomerBill-${bill.billNo}.pdf`);
+  }
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6">
       <h1 className="text-2xl font-semibold mb-4 no-print">Customer Bill</h1>
 
-      <div className="flex gap-2 mb-4 no-print">
+      <div className="flex flex-col sm:flex-row gap-2 mb-4 no-print">
         <select
           className="border p-2 rounded"
           value={customerId}
@@ -100,43 +106,45 @@ export default function CustomerBill() {
 
       {!bill && (
         <div className="no-print">
-          <table className="w-full border-collapse mb-4">
-            <thead>
-              <tr className="text-left border-b">
-                <th></th>
-                <th className="py-2">Vehicle</th>
-                <th>Plantain</th>
-                <th>Rate</th>
-                <th>Qty</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {availableLines.map((l) => (
-                <tr key={l.id} className="border-b">
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedLineIds.includes(l.id)}
-                      onChange={() => toggleLine(l.id)}
-                    />
-                  </td>
-                  <td className="py-2">{l.entry.vehicle?.vehicleRef}</td>
-                  <td>{l.entry.plantainType?.nameEn}</td>
-                  <td>{l.rate}</td>
-                  <td>{l.quantity}</td>
-                  <td>{l.amount}</td>
+          <div className="overflow-x-auto mb-4">
+            <table className="w-full border-collapse min-w-[520px]">
+              <thead>
+                <tr className="text-left border-b">
+                  <th></th>
+                  <th className="py-2">Vehicle</th>
+                  <th>Plantain</th>
+                  <th>Rate</th>
+                  <th>Qty</th>
+                  <th>Amount</th>
                 </tr>
-              ))}
-              {availableLines.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="text-gray-400 py-4">
-                    No unbilled sale lines for this customer/date.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {availableLines.map((l) => (
+                  <tr key={l.id} className="border-b">
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedLineIds.includes(l.id)}
+                        onChange={() => toggleLine(l.id)}
+                      />
+                    </td>
+                    <td className="py-2">{l.entry.vehicle?.vehicleRef}</td>
+                    <td>{l.entry.plantainType?.nameEn}</td>
+                    <td>{l.rate}</td>
+                    <td>{l.quantity}</td>
+                    <td>{l.amount}</td>
+                  </tr>
+                ))}
+                {availableLines.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-gray-400 py-4">
+                      No unbilled sale lines for this customer/date.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
           {error && <p className="text-red-600 text-sm mb-2">{error}</p>}
           <button
             disabled={!customerId || selectedLineIds.length === 0}
@@ -151,97 +159,106 @@ export default function CustomerBill() {
             {history.length === 0 ? (
               <p className="text-sm text-gray-400">No customer bills generated yet.</p>
             ) : (
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="text-left border-b text-gray-500">
-                    <th className="py-1">Bill No</th>
-                    <th>Buyer</th>
-                    <th>Date</th>
-                    <th className="text-right">Grand Total</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((h) => (
-                    <tr key={h.id} className="border-b">
-                      <td className="py-1">{h.billNo}</td>
-                      <td>
-                        {h.customer?.name}
-                        {h.customer?.initials && ` (${h.customer.initials})`}
-                      </td>
-                      <td>{new Date(h.billDate).toLocaleDateString("en-IN")}</td>
-                      <td className="text-right">₹{h.grandTotal}</td>
-                      <td className="text-right">
-                        <button onClick={() => viewBill(h.id)} className="text-green-700 underline text-xs">
-                          View
-                        </button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm min-w-[480px]">
+                  <thead>
+                    <tr className="text-left border-b text-gray-500">
+                      <th className="py-1">Bill No</th>
+                      <th>Buyer</th>
+                      <th>Date</th>
+                      <th className="text-right">Grand Total</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {history.map((h) => (
+                      <tr key={h.id} className="border-b">
+                        <td className="py-1">{h.billNo}</td>
+                        <td>
+                          {h.customer?.name}
+                          {h.customer?.initials && ` (${h.customer.initials})`}
+                        </td>
+                        <td>{new Date(h.billDate).toLocaleDateString("en-IN")}</td>
+                        <td className="text-right">₹{h.grandTotal}</td>
+                        <td className="text-right">
+                          <button onClick={() => viewBill(h.id)} className="text-green-700 underline text-xs">
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
       )}
 
       {bill && (
-        <div className="border p-6 rounded bg-white">
-          <div className="flex justify-end mb-2 no-print">
+        <div className="border p-4 sm:p-6 rounded bg-white">
+          <div className="flex justify-end gap-4 mb-2 no-print">
             <button onClick={() => window.print()} className="text-sm underline">
               Print
             </button>
+            <button onClick={handleDownload} className="text-sm underline">
+              Download PDF
+            </button>
           </div>
 
-          <BillHeader
-            settings={settings}
-            title="Customer Bill"
-            billNo={bill.billNo}
-            date={new Date(bill.billDate).toLocaleDateString("en-IN")}
-          />
+          <div ref={printRef}>
+            <BillHeader
+              settings={settings}
+              title="Customer Bill"
+              billNo={bill.billNo}
+              date={new Date(bill.billDate).toLocaleDateString("en-IN")}
+            />
 
-          <p className="text-sm mb-3">
-            <span className="text-gray-500">Buyer: </span>
-            <span className="font-semibold">{bill.customer?.name}</span>
-            {bill.customer?.initials && ` (${bill.customer.initials})`}
-          </p>
+            <p className="text-sm mb-3">
+              <span className="text-gray-500">Buyer: </span>
+              <span className="font-semibold">{bill.customer?.name}</span>
+              {bill.customer?.initials && ` (${bill.customer.initials})`}
+            </p>
 
-          <table className="w-full border-collapse text-sm mb-4">
-            <thead>
-              <tr className="text-left border-y-2 border-black">
-                <th className="py-1">#</th>
-                <th>Vehicle</th>
-                <th>Plantain</th>
-                <th>Stock</th>
-                <th className="text-right">Qty</th>
-                <th className="text-right">Rate</th>
-                <th className="text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bill.lines?.map((l, i) => (
-                <tr key={l.id} className="border-b">
-                  <td className="py-1">{i + 1}</td>
-                  <td>{l.saleLine?.auctionEntry?.vehicle?.vehicleRef}</td>
-                  <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
-                  <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
-                  <td className="text-right">{l.saleLine?.quantity}</td>
-                  <td className="text-right">{l.saleLine?.rate}</td>
-                  <td className="text-right">{l.saleLine?.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-black font-bold">
-                <td colSpan={6} className="text-right py-2">
-                  Grand Total
-                </td>
-                <td className="text-right py-2">₹{bill.grandTotal}</td>
-              </tr>
-            </tfoot>
-          </table>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm mb-4 min-w-[560px]">
+                <thead>
+                  <tr className="text-left border-y-2 border-black">
+                    <th className="py-1">#</th>
+                    <th>Vehicle</th>
+                    <th>Plantain</th>
+                    <th>Stock</th>
+                    <th className="text-right">Qty</th>
+                    <th className="text-right">Rate</th>
+                    <th className="text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bill.lines?.map((l, i) => (
+                    <tr key={l.id} className="border-b">
+                      <td className="py-1">{i + 1}</td>
+                      <td>{l.saleLine?.auctionEntry?.vehicle?.vehicleRef}</td>
+                      <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
+                      <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
+                      <td className="text-right">{l.saleLine?.quantity}</td>
+                      <td className="text-right">{l.saleLine?.rate}</td>
+                      <td className="text-right">{l.saleLine?.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-black font-bold">
+                    <td colSpan={6} className="text-right py-2">
+                      Grand Total
+                    </td>
+                    <td className="text-right py-2">₹{bill.grandTotal}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
 
-          <BillFooter settings={settings} companyLabel="For the Firm" partyLabel="Buyer Signature" />
+            <BillFooter settings={settings} companyLabel="For the Firm" partyLabel="Buyer Signature" />
+          </div>
 
           <button
             onClick={() => setBill(null)}

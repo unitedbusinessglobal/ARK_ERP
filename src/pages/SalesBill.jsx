@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import api from "../lib/api.js";
 import BillHeader from "../components/BillHeader.jsx";
 import BillFooter from "../components/BillFooter.jsx";
+import { downloadElementAsPdf } from "../lib/pdf.js";
 
 // Deduction fields on every sales bill (AE-12): commission + vehicle fare
 // (existing) plus weighing/coolie/market charges, standard Coimbatore
@@ -24,6 +25,7 @@ export default function SalesBill() {
   const [bill, setBill] = useState(null);
   const [error, setError] = useState("");
   const [history, setHistory] = useState([]);
+  const printRef = useRef(null);
 
   useEffect(() => {
     api.get("/vehicles").then((r) => setVehicles(r.data));
@@ -67,13 +69,17 @@ export default function SalesBill() {
     setBill(full.data);
   }
 
+  function handleDownload() {
+    downloadElementAsPdf(printRef.current, `SalesBill-${bill.billNo}.pdf`);
+  }
+
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto p-4 sm:p-6">
       <h1 className="text-2xl font-semibold mb-4 no-print">Farmer/Agent Sales Bill</h1>
 
       {!bill && (
         <div className="no-print space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <select
               className="border p-2 rounded flex-1"
               value={vehicleId}
@@ -128,140 +134,149 @@ export default function SalesBill() {
             {history.length === 0 ? (
               <p className="text-sm text-gray-400">No sales bills generated yet.</p>
             ) : (
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="text-left border-b text-gray-500">
-                    <th className="py-1">Bill No</th>
-                    <th>Vehicle</th>
-                    <th>Farmer/Agent</th>
-                    <th>Period</th>
-                    <th className="text-right">Net Payable</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((h) => (
-                    <tr key={h.id} className="border-b">
-                      <td className="py-1">{h.billNo}</td>
-                      <td>{h.vehicle?.vehicleRef}</td>
-                      <td>{h.farmerAgent?.name}</td>
-                      <td>
-                        {new Date(h.salePeriodFrom).toLocaleDateString("en-IN")} –{" "}
-                        {new Date(h.salePeriodTo).toLocaleDateString("en-IN")}
-                      </td>
-                      <td className="text-right">₹{h.netPayableAmount}</td>
-                      <td className="text-right">
-                        <button onClick={() => viewBill(h.id)} className="text-green-700 underline text-xs">
-                          View
-                        </button>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse text-sm min-w-[560px]">
+                  <thead>
+                    <tr className="text-left border-b text-gray-500">
+                      <th className="py-1">Bill No</th>
+                      <th>Vehicle</th>
+                      <th>Farmer/Agent</th>
+                      <th>Period</th>
+                      <th className="text-right">Net Payable</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {history.map((h) => (
+                      <tr key={h.id} className="border-b">
+                        <td className="py-1">{h.billNo}</td>
+                        <td>{h.vehicle?.vehicleRef}</td>
+                        <td>{h.farmerAgent?.name}</td>
+                        <td>
+                          {new Date(h.salePeriodFrom).toLocaleDateString("en-IN")} –{" "}
+                          {new Date(h.salePeriodTo).toLocaleDateString("en-IN")}
+                        </td>
+                        <td className="text-right">₹{h.netPayableAmount}</td>
+                        <td className="text-right">
+                          <button onClick={() => viewBill(h.id)} className="text-green-700 underline text-xs">
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
       )}
 
       {bill && (
-        <div className="border p-6 rounded bg-white">
-          <div className="flex justify-end mb-2 no-print">
+        <div className="border p-4 sm:p-6 rounded bg-white">
+          <div className="flex justify-end gap-4 mb-2 no-print">
             <button onClick={() => window.print()} className="text-sm underline">
               Print
             </button>
+            <button onClick={handleDownload} className="text-sm underline">
+              Download PDF
+            </button>
           </div>
 
-          <BillHeader
-            settings={settings}
-            title="Farmer / Agent Sales Bill (Patti)"
-            billNo={bill.billNo}
-            date={new Date(bill.generatedAt).toLocaleDateString("en-IN")}
-          />
+          <div ref={printRef}>
+            <BillHeader
+              settings={settings}
+              title="Farmer / Agent Sales Bill (Patti)"
+              billNo={bill.billNo}
+              date={new Date(bill.generatedAt).toLocaleDateString("en-IN")}
+            />
 
-          <div className="grid sm:grid-cols-2 gap-2 text-sm mb-3">
-            <p>
-              <span className="text-gray-500">Farmer / Agent: </span>
-              <span className="font-semibold">{bill.farmerAgent?.name}</span>
-            </p>
-            <p>
-              <span className="text-gray-500">Vehicle: </span>
-              <span className="font-semibold">{bill.vehicle?.vehicleRef}</span>
-            </p>
-            <p>
-              <span className="text-gray-500">Sale Period: </span>
-              {new Date(bill.salePeriodFrom).toLocaleDateString("en-IN")} –{" "}
-              {new Date(bill.salePeriodTo).toLocaleDateString("en-IN")}
-            </p>
+            <div className="grid sm:grid-cols-2 gap-2 text-sm mb-3">
+              <p>
+                <span className="text-gray-500">Farmer / Agent: </span>
+                <span className="font-semibold">{bill.farmerAgent?.name}</span>
+              </p>
+              <p>
+                <span className="text-gray-500">Vehicle: </span>
+                <span className="font-semibold">{bill.vehicle?.vehicleRef}</span>
+              </p>
+              <p>
+                <span className="text-gray-500">Sale Period: </span>
+                {new Date(bill.salePeriodFrom).toLocaleDateString("en-IN")} –{" "}
+                {new Date(bill.salePeriodTo).toLocaleDateString("en-IN")}
+              </p>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse text-sm mb-4 min-w-[560px]">
+                <thead>
+                  <tr className="text-left border-y-2 border-black">
+                    <th className="py-1">#</th>
+                    <th>Customer</th>
+                    <th>Plantain</th>
+                    <th>Stock</th>
+                    <th className="text-right">Qty</th>
+                    <th className="text-right">Rate</th>
+                    <th className="text-right">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bill.lines?.map((l, i) => (
+                    <tr key={l.id} className="border-b">
+                      <td className="py-1">{i + 1}</td>
+                      <td>{l.saleLine?.customer?.name}</td>
+                      <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
+                      <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
+                      <td className="text-right">{l.saleLine?.quantity}</td>
+                      <td className="text-right">{l.saleLine?.rate}</td>
+                      <td className="text-right">{l.saleLine?.amount}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <table className="w-full sm:ml-auto sm:max-w-xs text-sm mb-2">
+              <tbody>
+                <tr>
+                  <td className="py-1">Gross Sales Amount</td>
+                  <td className="text-right">₹{bill.grossSalesAmount}</td>
+                </tr>
+                <tr>
+                  <td className="py-1">Less: Commission</td>
+                  <td className="text-right">- ₹{bill.commission}</td>
+                </tr>
+                <tr>
+                  <td className="py-1">Less: Vehicle Fare</td>
+                  <td className="text-right">- ₹{bill.vehicleFare}</td>
+                </tr>
+                {Number(bill.weighingCharges) > 0 && (
+                  <tr>
+                    <td className="py-1">Less: Weighing Charges</td>
+                    <td className="text-right">- ₹{bill.weighingCharges}</td>
+                  </tr>
+                )}
+                {Number(bill.coolieCharges) > 0 && (
+                  <tr>
+                    <td className="py-1">Less: Coolie Charges</td>
+                    <td className="text-right">- ₹{bill.coolieCharges}</td>
+                  </tr>
+                )}
+                {Number(bill.marketFee) > 0 && (
+                  <tr>
+                    <td className="py-1">Less: Market Fee</td>
+                    <td className="text-right">- ₹{bill.marketFee}</td>
+                  </tr>
+                )}
+                <tr className="border-t-2 border-black font-bold">
+                  <td className="py-2">Net Payable</td>
+                  <td className="text-right py-2">₹{bill.netPayableAmount}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <BillFooter settings={settings} companyLabel="For the Firm" partyLabel="Farmer / Agent Signature" />
           </div>
-
-          <table className="w-full border-collapse text-sm mb-4">
-            <thead>
-              <tr className="text-left border-y-2 border-black">
-                <th className="py-1">#</th>
-                <th>Customer</th>
-                <th>Plantain</th>
-                <th>Stock</th>
-                <th className="text-right">Qty</th>
-                <th className="text-right">Rate</th>
-                <th className="text-right">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {bill.lines?.map((l, i) => (
-                <tr key={l.id} className="border-b">
-                  <td className="py-1">{i + 1}</td>
-                  <td>{l.saleLine?.customer?.name}</td>
-                  <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
-                  <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
-                  <td className="text-right">{l.saleLine?.quantity}</td>
-                  <td className="text-right">{l.saleLine?.rate}</td>
-                  <td className="text-right">{l.saleLine?.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <table className="w-full text-sm mb-2 ml-auto max-w-xs">
-            <tbody>
-              <tr>
-                <td className="py-1">Gross Sales Amount</td>
-                <td className="text-right">₹{bill.grossSalesAmount}</td>
-              </tr>
-              <tr>
-                <td className="py-1">Less: Commission</td>
-                <td className="text-right">- ₹{bill.commission}</td>
-              </tr>
-              <tr>
-                <td className="py-1">Less: Vehicle Fare</td>
-                <td className="text-right">- ₹{bill.vehicleFare}</td>
-              </tr>
-              {Number(bill.weighingCharges) > 0 && (
-                <tr>
-                  <td className="py-1">Less: Weighing Charges</td>
-                  <td className="text-right">- ₹{bill.weighingCharges}</td>
-                </tr>
-              )}
-              {Number(bill.coolieCharges) > 0 && (
-                <tr>
-                  <td className="py-1">Less: Coolie Charges</td>
-                  <td className="text-right">- ₹{bill.coolieCharges}</td>
-                </tr>
-              )}
-              {Number(bill.marketFee) > 0 && (
-                <tr>
-                  <td className="py-1">Less: Market Fee</td>
-                  <td className="text-right">- ₹{bill.marketFee}</td>
-                </tr>
-              )}
-              <tr className="border-t-2 border-black font-bold">
-                <td className="py-2">Net Payable</td>
-                <td className="text-right py-2">₹{bill.netPayableAmount}</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <BillFooter settings={settings} companyLabel="For the Firm" partyLabel="Farmer / Agent Signature" />
 
           <button
             onClick={() => setBill(null)}
