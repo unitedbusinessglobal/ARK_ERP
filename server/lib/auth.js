@@ -2,12 +2,19 @@
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-secret-change-me";
+// AE-18: was a hardcoded 12h, which routinely went stale for a business
+// used across a full working day (or checked again the next day) --
+// once expired, every API call 401'd and every list in the app silently
+// rendered empty, indistinguishable from actual data loss. Confirmed
+// default of 7 days, overridable via env if the business wants shorter
+// sessions -- not a hardcoded assumption baked in.
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
 export function signToken(user) {
   return jwt.sign(
     { sub: user.id, name: user.name, role: user.role },
     JWT_SECRET,
-    { expiresIn: "12h" }
+    { expiresIn: JWT_EXPIRES_IN }
   );
 }
 
