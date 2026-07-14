@@ -24,7 +24,11 @@ function crud(resourceName, model, { uniqueField, buildData }) {
   sub.post(
     "/",
     requireAuth,
-    requireRole("ADMIN"),
+    // AE-16: creating a new master value (not editing/renaming an existing
+    // one) is opened up to DATA_ENTRY too, matching vehicles.js -- otherwise
+    // the inline "+ Add new" quick-add in Auction Entry is unusable by the
+    // people who actually enter auction data day to day.
+    requireRole("ADMIN", "DATA_ENTRY"),
     asyncHandler(async (req, res) => {
       try {
         const data = buildData(req.body);
