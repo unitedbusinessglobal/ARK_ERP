@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tamil font support (AE-19/AE-20, BRD §10 Font Support / NFR): Noto Sans
+   Tamil is the recommended web-safe Tamil font per the BRD. Loaded from
+   Google Fonts and applied both via .lang-ta (specific fields, e.g. the
+   Translations page's Tamil input) and html[lang="ta"] (the whole app,
+   toggled by LanguageProvider) so Tamil text never falls back to tofu boxes
+   in print/PDF export. */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap");
+
+.lang-ta,
+html[lang="ta"] {
+  font-family: "Noto Sans Tamil", "Nirmala UI", "Latha", "Vijaya", sans-serif;
+}
+
 @media print {
   nav, .no-print {
     display: none !important;

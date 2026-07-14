@@ -23,6 +23,7 @@ import customerBillsRoutes from "../server/routes/customerBills.js";
 import salesBillsRoutes from "../server/routes/salesBills.js";
 import reportsRoutes from "../server/routes/reports.js";
 import settingsRoutes from "../server/routes/settings.js";
+import labelsRoutes from "../server/routes/labels.js";
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use("/api/customer-bills", customerBillsRoutes);
 app.use("/api/sales-bills", salesBillsRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/labels", labelsRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
