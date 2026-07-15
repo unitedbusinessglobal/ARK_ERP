@@ -15,6 +15,15 @@ html[lang="ta"] {
   font-family: "Noto Sans Tamil", "Nirmala UI", "Latha", "Vijaya", sans-serif;
 }
 
+/* Tamil glyphs (vowel signs/ligatures) read noticeably smaller than Latin
+   text at the same font-size, so form fields/cells carrying Tamil content
+   (e.g. the Translations page's Tamil column, Masters' Tamil Name field)
+   get a size + line-height bump on top of the font-family switch above. */
+.lang-ta {
+  font-size: 1.15em;
+  line-height: 1.6;
+}
+
 @media print {
   nav, .no-print {
     display: none !important;

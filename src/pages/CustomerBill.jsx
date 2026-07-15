@@ -6,7 +6,14 @@ import { downloadElementAsPdf } from "../lib/pdf.js";
 import { useLanguage } from "../lib/i18n.jsx";
 
 export default function CustomerBill() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  // AE-25: master records (customer/plantain/stock) carry an optional
+  // nameTa -- show it in TA mode wherever the record is displayed,
+  // including inside the printed bill itself, falling back to English.
+  function displayName(record, enField = "nameEn") {
+    if (!record) return "";
+    return lang === "TA" && record.nameTa ? record.nameTa : record[enField];
+  }
   const [settings, setSettings] = useState(null);
   const [customers, setCustomers] = useState([]);
   const [customerId, setCustomerId] = useState("");
@@ -97,7 +104,7 @@ export default function CustomerBill() {
           <option value="">{t("form.selectCustomer", "Select customer")}</option>
           {customers.map((c) => (
             <option key={c.id} value={c.id}>
-              {c.name} ({c.initials})
+              {displayName(c, "name")} ({c.initials})
             </option>
           ))}
         </select>
@@ -134,7 +141,7 @@ export default function CustomerBill() {
                       />
                     </td>
                     <td className="py-2">{l.entry.vehicle?.vehicleRef}</td>
-                    <td>{l.entry.plantainType?.nameEn}</td>
+                    <td>{displayName(l.entry.plantainType)}</td>
                     <td>{l.rate}</td>
                     <td>{l.quantity}</td>
                     <td>{l.amount}</td>
@@ -180,7 +187,7 @@ export default function CustomerBill() {
                       <tr key={h.id} className="border-b">
                         <td className="py-1">{h.billNo}</td>
                         <td>
-                          {h.customer?.name}
+                          {displayName(h.customer, "name")}
                           {h.customer?.initials && ` (${h.customer.initials})`}
                         </td>
                         <td>{new Date(h.billDate).toLocaleDateString("en-IN")}</td>
@@ -221,7 +228,7 @@ export default function CustomerBill() {
 
             <p className="text-sm mb-3">
               <span className="text-gray-500">{t("bill.buyerLabel", "Buyer")}: </span>
-              <span className="font-semibold">{bill.customer?.name}</span>
+              <span className="font-semibold">{displayName(bill.customer, "name")}</span>
               {bill.customer?.initials && ` (${bill.customer.initials})`}
             </p>
 
@@ -243,8 +250,8 @@ export default function CustomerBill() {
                     <tr key={l.id} className="border-b">
                       <td className="py-1">{i + 1}</td>
                       <td>{l.saleLine?.auctionEntry?.vehicle?.vehicleRef}</td>
-                      <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
-                      <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
+                      <td>{displayName(l.saleLine?.auctionEntry?.plantainType)}</td>
+                      <td>{displayName(l.saleLine?.auctionEntry?.stockType)}</td>
                       <td className="text-right">{l.saleLine?.quantity}</td>
                       <td className="text-right">{l.saleLine?.rate}</td>
                       <td className="text-right">{l.saleLine?.amount}</td>

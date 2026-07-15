@@ -19,7 +19,14 @@ const DEDUCTION_FIELDS = [
 ];
 
 export default function SalesBill() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  // AE-25: master records (farmerAgent/customer/plantain/stock) carry an
+  // optional nameTa -- show it in TA mode wherever the record is
+  // displayed, including inside the printed bill itself.
+  function displayName(record, enField = "nameEn") {
+    if (!record) return "";
+    return lang === "TA" && record.nameTa ? record.nameTa : record[enField];
+  }
   const [settings, setSettings] = useState(null);
   const [vehicles, setVehicles] = useState([]);
   const [vehicleId, setVehicleId] = useState("");
@@ -94,7 +101,7 @@ export default function SalesBill() {
               <option value="">{t("form.selectVehicle", "Select vehicle")}</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.vehicleRef} — {v.farmerAgent?.name}
+                  {v.vehicleRef} — {displayName(v.farmerAgent, "name")}
                 </option>
               ))}
             </select>
@@ -157,7 +164,7 @@ export default function SalesBill() {
                       <tr key={h.id} className="border-b">
                         <td className="py-1">{h.billNo}</td>
                         <td>{h.vehicle?.vehicleRef}</td>
-                        <td>{h.farmerAgent?.name}</td>
+                        <td>{displayName(h.farmerAgent, "name")}</td>
                         <td>
                           {new Date(h.salePeriodFrom).toLocaleDateString("en-IN")} –{" "}
                           {new Date(h.salePeriodTo).toLocaleDateString("en-IN")}
@@ -200,7 +207,7 @@ export default function SalesBill() {
             <div className="grid sm:grid-cols-2 gap-2 text-sm mb-3">
               <p>
                 <span className="text-gray-500">{t("bill.farmerAgentLabel", "Farmer / Agent")}: </span>
-                <span className="font-semibold">{bill.farmerAgent?.name}</span>
+                <span className="font-semibold">{displayName(bill.farmerAgent, "name")}</span>
               </p>
               <p>
                 <span className="text-gray-500">{t("bill.vehicleLabel", "Vehicle")}: </span>
@@ -230,9 +237,9 @@ export default function SalesBill() {
                   {bill.lines?.map((l, i) => (
                     <tr key={l.id} className="border-b">
                       <td className="py-1">{i + 1}</td>
-                      <td>{l.saleLine?.customer?.name}</td>
-                      <td>{l.saleLine?.auctionEntry?.plantainType?.nameEn}</td>
-                      <td>{l.saleLine?.auctionEntry?.stockType?.nameEn}</td>
+                      <td>{displayName(l.saleLine?.customer, "name")}</td>
+                      <td>{displayName(l.saleLine?.auctionEntry?.plantainType)}</td>
+                      <td>{displayName(l.saleLine?.auctionEntry?.stockType)}</td>
                       <td className="text-right">{l.saleLine?.quantity}</td>
                       <td className="text-right">{l.saleLine?.rate}</td>
                       <td className="text-right">{l.saleLine?.amount}</td>
