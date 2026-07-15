@@ -131,21 +131,22 @@ async function main() {
   }
 
   // UI chrome (nav/actions) -- the BRD's dictionary only covers bill/report
-  // domain terms, not app navigation, so these seed EN-only. TA stays blank
-  // until the admin fills it in from the Translations page; the UI falls
-  // back to the EN string (or the key itself) when TA text is empty.
+  // domain terms, not app navigation. First pass seeded these TA-blank
+  // (falls back to English); draft Tamil added here as a starting point --
+  // NOT sourced from the BRD, so treat it as a placeholder the business
+  // should review/correct from the Translations page, not final wording.
   const chromeLabels = [
-    { key: "nav.appTitle", en: "ARK Plantain Mundy" },
-    { key: "nav.auctionEntry", en: "Auction Entry" },
-    { key: "nav.customerBill", en: "Customer Bill" },
-    { key: "nav.salesBill", en: "Sales Bill" },
-    { key: "nav.reports", en: "Reports" },
-    { key: "nav.masters", en: "Masters" },
-    { key: "nav.settings", en: "Settings" },
-    { key: "nav.translations", en: "Translations" },
-    { key: "nav.logout", en: "Logout" },
-    { key: "nav.menu", en: "Menu" },
-    { key: "nav.close", en: "Close" },
+    { key: "nav.appTitle", en: "ARK Plantain Mundy", ta: "ARK பிளாண்டைன் மண்டி" },
+    { key: "nav.auctionEntry", en: "Auction Entry", ta: "ஏலப் பதிவு" },
+    { key: "nav.customerBill", en: "Customer Bill", ta: "வாடிக்கையாளர் ரசீது" },
+    { key: "nav.salesBill", en: "Sales Bill", ta: "விற்பனை ரசீது" },
+    { key: "nav.reports", en: "Reports", ta: "அறிக்கைகள்" },
+    { key: "nav.masters", en: "Masters", ta: "மாஸ்டர் தரவு" },
+    { key: "nav.settings", en: "Settings", ta: "அமைப்புகள்" },
+    { key: "nav.translations", en: "Translations", ta: "மொழிபெயர்ப்புகள்" },
+    { key: "nav.logout", en: "Logout", ta: "வெளியேறு" },
+    { key: "nav.menu", en: "Menu", ta: "மெனு" },
+    { key: "nav.close", en: "Close", ta: "மூடு" },
   ];
 
   for (const l of chromeLabels) {
@@ -154,11 +155,21 @@ async function main() {
       update: {},
       create: { labelKey: l.key, lang: "EN", labelText: l.en },
     });
-    await prisma.labelI18n.upsert({
+    // Only fill TA in if it's missing or still blank -- never overwrite
+    // wording the admin has already edited via the Translations page.
+    const existingTa = await prisma.labelI18n.findUnique({
       where: { labelKey_lang: { labelKey: l.key, lang: "TA" } },
-      update: {},
-      create: { labelKey: l.key, lang: "TA", labelText: "" },
     });
+    if (!existingTa) {
+      await prisma.labelI18n.create({
+        data: { labelKey: l.key, lang: "TA", labelText: l.ta },
+      });
+    } else if (existingTa.labelText === "") {
+      await prisma.labelI18n.update({
+        where: { labelKey_lang: { labelKey: l.key, lang: "TA" } },
+        data: { labelText: l.ta },
+      });
+    }
   }
 
   console.log("Seed complete. Admin login: admin@arkplantainmundy.local / changeme123");
