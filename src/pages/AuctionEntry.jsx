@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api.js";
+import { useLanguage } from "../lib/i18n.jsx";
 
 const NEW_OPTION = "__new__";
 
 export default function AuctionEntry() {
+  const { t } = useLanguage();
   const [vehicles, setVehicles] = useState([]);
   const [farmersAgents, setFarmersAgents] = useState([]);
   const [plantainTypes, setPlantainTypes] = useState([]);
@@ -56,7 +58,7 @@ export default function AuctionEntry() {
     e.preventDefault();
     setError("");
     if (!newVehicle.farmerAgentId) {
-      setError("Pick or add a Farmer/Agent first.");
+      setError(t("msg.pickFarmerAgentFirst", "Pick or add a Farmer/Agent first."));
       return;
     }
     try {
@@ -156,7 +158,7 @@ export default function AuctionEntry() {
     setMessage("");
     try {
       await api.post("/auction-entries", { ...entry, saleLines });
-      setMessage("Auction entry saved.");
+      setMessage(t("msg.auctionEntrySaved", "Auction entry saved."));
       setSaleLines([{ customerId: "", rate: "", quantity: "" }]);
     } catch (err) {
       setError(err.response?.data?.error || "Could not save auction entry");
@@ -171,10 +173,12 @@ export default function AuctionEntry() {
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold mb-4">Auction Entry</h1>
+        <h1 className="text-2xl font-semibold mb-4">{t("nav.auctionEntry", "Auction Entry")}</h1>
 
         <details className="mb-4 bg-gray-50 p-4 rounded">
-          <summary className="cursor-pointer font-medium">Add a new vehicle/arrival</summary>
+          <summary className="cursor-pointer font-medium">
+            {t("page.addVehicleArrival", "Add a new vehicle/arrival")}
+          </summary>
           <form onSubmit={handleAddVehicle} className="flex flex-col sm:flex-row gap-2 mt-3 flex-wrap">
             <input
               className="border p-2 rounded"
@@ -193,13 +197,13 @@ export default function AuctionEntry() {
                 setNewVehicle({ ...newVehicle, farmerAgentId: e.target.value });
               }}
             >
-              <option value="">Farmer/Agent</option>
+              <option value="">{t("form.farmerAgent", "Farmer/Agent")}</option>
               {farmersAgents.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.name}
                 </option>
               ))}
-              <option value={NEW_OPTION}>+ Add new Farmer/Agent…</option>
+              <option value={NEW_OPTION}>{t("action.addFarmerAgent", "+ Add new Farmer/Agent…")}</option>
             </select>
             <input
               className="border p-2 rounded"
@@ -207,7 +211,7 @@ export default function AuctionEntry() {
               value={newVehicle.arrivalDate}
               onChange={(e) => setNewVehicle({ ...newVehicle, arrivalDate: e.target.value })}
             />
-            <button className="bg-gray-700 text-white px-4 py-2 rounded">Add Vehicle</button>
+            <button className="bg-gray-700 text-white px-4 py-2 rounded">{t("action.addVehicle", "Add Vehicle")}</button>
           </form>
 
           {addingFarmerAgent && (
@@ -217,25 +221,25 @@ export default function AuctionEntry() {
             >
               <input
                 className="border p-2 rounded flex-1"
-                placeholder="Farmer/Agent name"
+                placeholder={t("form.farmerAgentName", "Farmer/Agent name")}
                 value={newFarmerAgent.name}
                 onChange={(e) => setNewFarmerAgent({ ...newFarmerAgent, name: e.target.value })}
                 required
               />
               <input
                 className="border p-2 rounded"
-                placeholder="Phone (optional)"
+                placeholder={t("form.phoneOptional", "Phone (optional)")}
                 value={newFarmerAgent.phone}
                 onChange={(e) => setNewFarmerAgent({ ...newFarmerAgent, phone: e.target.value })}
               />
               <div className="flex gap-2">
-                <button className="bg-green-700 text-white px-3 rounded text-sm">Save</button>
+                <button className="bg-green-700 text-white px-3 rounded text-sm">{t("action.save", "Save")}</button>
                 <button
                   type="button"
                   onClick={() => setAddingFarmerAgent(false)}
                   className="text-gray-500 text-sm underline"
                 >
-                  Cancel
+                  {t("action.cancel", "Cancel")}
                 </button>
               </div>
             </form>
@@ -249,7 +253,7 @@ export default function AuctionEntry() {
               value={entry.vehicleId}
               onChange={(e) => setEntry({ ...entry, vehicleId: e.target.value })}
             >
-              <option value="">Vehicle</option>
+              <option value="">{t("form.vehicle", "Vehicle")}</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>
                   {v.vehicleRef} — {v.farmerAgent?.name}
@@ -273,13 +277,13 @@ export default function AuctionEntry() {
                 setEntry({ ...entry, plantainTypeId: e.target.value });
               }}
             >
-              <option value="">Plantain Type</option>
+              <option value="">{t("label.plantainType", "Plantain Type")}</option>
               {plantainTypes.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nameEn}
                 </option>
               ))}
-              <option value={NEW_OPTION}>+ Add new Plantain Type…</option>
+              <option value={NEW_OPTION}>{t("action.addPlantainType", "+ Add new Plantain Type…")}</option>
             </select>
             <select
               className="border p-2 rounded"
@@ -292,13 +296,13 @@ export default function AuctionEntry() {
                 setEntry({ ...entry, stockTypeId: e.target.value });
               }}
             >
-              <option value="">Stock Type</option>
+              <option value="">{t("form.stockType", "Stock Type")}</option>
               {stockTypes.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.nameEn}
                 </option>
               ))}
-              <option value={NEW_OPTION}>+ Add new Stock Type…</option>
+              <option value={NEW_OPTION}>{t("action.addStockType", "+ Add new Stock Type…")}</option>
             </select>
           </div>
 
@@ -322,13 +326,13 @@ export default function AuctionEntry() {
                 required
               />
               <div className="flex gap-2">
-                <button className="bg-green-700 text-white px-3 rounded text-sm">Save</button>
+                <button className="bg-green-700 text-white px-3 rounded text-sm">{t("action.save", "Save")}</button>
                 <button
                   type="button"
                   onClick={() => setAddingPlantainType(false)}
                   className="text-gray-500 text-sm underline"
                 >
-                  Cancel
+                  {t("action.cancel", "Cancel")}
                 </button>
               </div>
             </form>
@@ -354,20 +358,20 @@ export default function AuctionEntry() {
                 required
               />
               <div className="flex gap-2">
-                <button className="bg-green-700 text-white px-3 rounded text-sm">Save</button>
+                <button className="bg-green-700 text-white px-3 rounded text-sm">{t("action.save", "Save")}</button>
                 <button
                   type="button"
                   onClick={() => setAddingStockType(false)}
                   className="text-gray-500 text-sm underline"
                 >
-                  Cancel
+                  {t("action.cancel", "Cancel")}
                 </button>
               </div>
             </form>
           )}
 
           <div>
-            <h2 className="font-medium mb-2">Sale lines</h2>
+            <h2 className="font-medium mb-2">{t("page.saleLines", "Sale lines")}</h2>
             {saleLines.map((line, idx) => (
               <div key={idx} className="mb-2">
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -376,19 +380,19 @@ export default function AuctionEntry() {
                     value={line.customerId}
                     onChange={(e) => handleCustomerSelect(idx, e.target.value)}
                   >
-                    <option value="">Customer</option>
+                    <option value="">{t("form.customer", "Customer")}</option>
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name} ({c.initials})
                       </option>
                     ))}
-                    <option value={NEW_OPTION}>+ Add new Customer…</option>
+                    <option value={NEW_OPTION}>{t("action.addCustomer", "+ Add new Customer…")}</option>
                   </select>
                   <input
                     className="border p-2 rounded w-full sm:w-28"
                     type="number"
                     step="0.01"
-                    placeholder="Rate"
+                    placeholder={t("label.rate", "Rate")}
                     value={line.rate}
                     onChange={(e) => updateLine(idx, "rate", e.target.value)}
                   />
@@ -396,7 +400,7 @@ export default function AuctionEntry() {
                     className="border p-2 rounded w-full sm:w-28"
                     type="number"
                     step="0.01"
-                    placeholder="Qty"
+                    placeholder={t("form.qty", "Qty")}
                     value={line.quantity}
                     onChange={(e) => updateLine(idx, "quantity", e.target.value)}
                   />
@@ -415,7 +419,7 @@ export default function AuctionEntry() {
                   >
                     <input
                       className="border p-2 rounded flex-1"
-                      placeholder="Customer name"
+                      placeholder={t("form.customerName", "Customer name")}
                       value={newCustomer.name}
                       onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
                       required
@@ -428,13 +432,13 @@ export default function AuctionEntry() {
                       required
                     />
                     <div className="flex gap-2">
-                      <button className="bg-green-700 text-white px-3 rounded text-sm">Save</button>
+                      <button className="bg-green-700 text-white px-3 rounded text-sm">{t("action.save", "Save")}</button>
                       <button
                         type="button"
                         onClick={() => setAddingCustomerForLine(null)}
                         className="text-gray-500 text-sm underline"
                       >
-                        Cancel
+                        {t("action.cancel", "Cancel")}
                       </button>
                     </div>
                   </form>
@@ -442,16 +446,20 @@ export default function AuctionEntry() {
               </div>
             ))}
             <button type="button" onClick={addLine} className="text-green-700 text-sm">
-              + Add sale line
+              {t("action.addSaleLine", "+ Add sale line")}
             </button>
           </div>
 
-          <p className="font-medium">Total: {total.toFixed(2)}</p>
+          <p className="font-medium">
+            {t("page.total", "Total")}: {total.toFixed(2)}
+          </p>
 
           {error && <p className="text-red-600 text-sm">{error}</p>}
           {message && <p className="text-green-700 text-sm">{message}</p>}
 
-          <button className="bg-green-700 text-white px-6 py-2 rounded">Save Auction Entry</button>
+          <button className="bg-green-700 text-white px-6 py-2 rounded">
+            {t("action.saveAuctionEntry", "Save Auction Entry")}
+          </button>
         </form>
       </div>
     </div>

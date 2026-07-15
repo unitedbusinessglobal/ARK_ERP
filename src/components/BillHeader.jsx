@@ -1,7 +1,13 @@
 // Shared letterhead for Customer Bill / Sales Bill print views (AE-12),
 // standard Coimbatore commission-agent (aaratdar) format. Details come from
-// admin-editable OrganizationSettings rather than being hardcoded.
+// admin-editable OrganizationSettings rather than being hardcoded. `title`
+// is passed in already translated by the caller (each bill page knows its
+// own label.* key); this component only translates its own static chrome
+// (tagline, Bill No/Date captions).
+import { useLanguage } from "../lib/i18n.jsx";
+
 export default function BillHeader({ settings, title, billNo, date }) {
+  const { t } = useLanguage();
   const addressParts = [
     settings?.addressLine1,
     settings?.addressLine2,
@@ -14,7 +20,7 @@ export default function BillHeader({ settings, title, billNo, date }) {
         <h1 className="text-2xl font-extrabold uppercase tracking-wide">
           {settings?.companyName || "ARK Plantain Mundy"}
         </h1>
-        <p className="text-xs text-gray-700">Commission Agent — Plantain & Fruits</p>
+        <p className="text-xs text-gray-700">{t("bill.tagline", "Commission Agent — Plantain & Fruits")}</p>
         {addressParts.map((line) => (
           <p key={line} className="text-xs text-gray-700">
             {line}
@@ -37,9 +43,11 @@ export default function BillHeader({ settings, title, billNo, date }) {
         <h2 className="font-bold uppercase text-sm">{title}</h2>
         <div className="text-right text-sm">
           <div>
-            Bill No: <span className="font-semibold">{billNo}</span>
+            {t("label.billNo", "Bill No")}: <span className="font-semibold">{billNo}</span>
           </div>
-          <div>Date: {date}</div>
+          <div>
+            {t("label.date", "Date")}: {date}
+          </div>
         </div>
       </div>
     </div>

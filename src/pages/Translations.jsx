@@ -10,7 +10,7 @@ import { useLanguage } from "../lib/i18n.jsx";
 // Tamil field next to it.
 export default function Translations() {
   const user = getUser();
-  const { refreshLabels } = useLanguage();
+  const { refreshLabels, t } = useLanguage();
   const [rows, setRows] = useState([]); // [{ labelKey, en, ta, taOriginal }]
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -52,7 +52,7 @@ export default function Translations() {
     setError("");
     setMessage("");
     if (dirtyRows.length === 0) {
-      setMessage("Nothing to save.");
+      setMessage(t("msg.nothingToSave", "Nothing to save."));
       return;
     }
     try {
@@ -69,7 +69,7 @@ export default function Translations() {
   if (user?.role !== "ADMIN") {
     return (
       <div className="max-w-3xl mx-auto p-6">
-        <p className="text-gray-600">Only Admin users can edit translations.</p>
+        <p className="text-gray-600">{t("msg.onlyAdminTranslations", "Only Admin users can edit translations.")}</p>
       </div>
     );
   }
@@ -84,30 +84,31 @@ export default function Translations() {
 
   return (
     <div className="max-w-3xl mx-auto p-4 sm:p-6">
-      <h1 className="text-2xl font-semibold mb-2">Translations</h1>
+      <h1 className="text-2xl font-semibold mb-2">{t("nav.translations", "Translations")}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        English text is the reference (seeded from the BRD's bilingual label
-        dictionary) and can't be changed here. Edit the Tamil column and save --
-        the change applies everywhere immediately, no deploy needed.
+        {t(
+          "page.translationsIntro",
+          "English text is the reference (seeded from the BRD's bilingual label dictionary) and can't be changed here. Edit the Tamil column and save -- the change applies everywhere immediately, no deploy needed."
+        )}
       </p>
 
       <input
         className="border p-2 rounded w-full mb-4"
-        placeholder="Search by key or English text…"
+        placeholder={t("page.searchPlaceholder", "Search by key or English text…")}
         value={filter}
         onChange={(e) => setFilter(e.target.value)}
       />
 
       {loading ? (
-        <p className="text-sm text-gray-500">Loading…</p>
+        <p className="text-sm text-gray-500">{t("page.loading", "Loading…")}</p>
       ) : (
         <div className="overflow-x-auto border rounded">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-left">
               <tr>
-                <th className="p-2 font-medium text-gray-600">Key</th>
-                <th className="p-2 font-medium text-gray-600">English</th>
-                <th className="p-2 font-medium text-gray-600">Tamil</th>
+                <th className="p-2 font-medium text-gray-600">{t("page.keyColumn", "Key")}</th>
+                <th className="p-2 font-medium text-gray-600">{t("page.englishColumn", "English")}</th>
+                <th className="p-2 font-medium text-gray-600">{t("page.tamilColumn", "Tamil")}</th>
               </tr>
             </thead>
             <tbody>
@@ -131,7 +132,7 @@ export default function Translations() {
               {visibleRows.length === 0 && (
                 <tr>
                   <td colSpan={3} className="p-4 text-center text-gray-400">
-                    No labels match "{filter}".
+                    {t("page.noLabelsMatch", "No labels match")} "{filter}".
                   </td>
                 </tr>
               )}
@@ -146,7 +147,7 @@ export default function Translations() {
           disabled={dirtyRows.length === 0}
           className="bg-green-700 text-white px-6 py-2 rounded disabled:opacity-40"
         >
-          Save {dirtyRows.length > 0 ? `(${dirtyRows.length})` : ""}
+          {t("action.save", "Save")} {dirtyRows.length > 0 ? `(${dirtyRows.length})` : ""}
         </button>
         {error && <p className="text-red-600 text-sm">{error}</p>}
         {message && <p className="text-green-700 text-sm">{message}</p>}

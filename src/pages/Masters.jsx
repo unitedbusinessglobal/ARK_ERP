@@ -1,42 +1,50 @@
 import { useEffect, useState } from "react";
 import api from "../lib/api.js";
+import { useLanguage } from "../lib/i18n.jsx";
 
+// labelKey/tabLabelKey drive translated display text; label/label (tab)
+// are the English fallback if a key is missing.
 const TABS = [
   {
     key: "customers",
     label: "Customers",
+    tabLabelKey: "masters.tabCustomers",
     fields: [
-      { name: "name", label: "Name" },
-      { name: "initials", label: "Initials" },
+      { name: "name", label: "Name", labelKey: "form.name" },
+      { name: "initials", label: "Initials", labelKey: "form.initials" },
     ],
   },
   {
     key: "farmers-agents",
     label: "Farmers / Agents",
+    tabLabelKey: "masters.tabFarmersAgents",
     fields: [
-      { name: "name", label: "Name" },
-      { name: "phone", label: "Phone" },
+      { name: "name", label: "Name", labelKey: "form.name" },
+      { name: "phone", label: "Phone", labelKey: "form.phone" },
     ],
   },
   {
     key: "plantain-types",
     label: "Plantain Types",
+    tabLabelKey: "masters.tabPlantainTypes",
     fields: [
-      { name: "code", label: "Code" },
-      { name: "nameEn", label: "Name" },
+      { name: "code", label: "Code", labelKey: "form.code" },
+      { name: "nameEn", label: "Name", labelKey: "form.name" },
     ],
   },
   {
     key: "stock-types",
     label: "Stock Types",
+    tabLabelKey: "masters.tabStockTypes",
     fields: [
-      { name: "code", label: "Code" },
-      { name: "nameEn", label: "Name" },
+      { name: "code", label: "Code", labelKey: "form.code" },
+      { name: "nameEn", label: "Name", labelKey: "form.name" },
     ],
   },
 ];
 
 export default function Masters() {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState(TABS[0]);
   const [records, setRecords] = useState([]);
   const [form, setForm] = useState({});
@@ -67,7 +75,7 @@ export default function Masters() {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-2xl font-semibold mb-4">Masters</h1>
+      <h1 className="text-2xl font-semibold mb-4">{t("nav.masters", "Masters")}</h1>
       <div className="flex gap-2 mb-6">
         {TABS.map((tab) => (
           <button
@@ -77,7 +85,7 @@ export default function Masters() {
               tab.key === activeTab.key ? "bg-green-700 text-white" : "bg-gray-200"
             }`}
           >
-            {tab.label}
+            {t(tab.tabLabelKey, tab.label)}
           </button>
         ))}
       </div>
@@ -87,12 +95,12 @@ export default function Masters() {
           <input
             key={f.name}
             className="border p-2 rounded"
-            placeholder={f.label}
+            placeholder={t(f.labelKey, f.label)}
             value={form[f.name] || ""}
             onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
           />
         ))}
-        <button className="bg-green-700 text-white px-4 rounded">Add</button>
+        <button className="bg-green-700 text-white px-4 rounded">{t("action.add", "Add")}</button>
       </form>
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
 
@@ -101,7 +109,7 @@ export default function Masters() {
           <tr className="text-left border-b">
             {activeTab.fields.map((f) => (
               <th key={f.name} className="py-2 pr-4">
-                {f.label}
+                {t(f.labelKey, f.label)}
               </th>
             ))}
           </tr>

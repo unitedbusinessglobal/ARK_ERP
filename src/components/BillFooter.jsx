@@ -1,6 +1,10 @@
 // Shared footer for Customer Bill / Sales Bill print views (AE-12): terms
-// note + signature blocks.
+// note + signature blocks. companyLabel/partyLabel are passed in already
+// translated by the caller.
+import { useLanguage } from "../lib/i18n.jsx";
+
 export default function BillFooter({ settings, companyLabel = "For the Firm", partyLabel = "Party Signature" }) {
+  const { t } = useLanguage();
   return (
     <div className="mt-10">
       {settings?.footerNote && (
@@ -25,7 +29,7 @@ export default function BillFooter({ settings, companyLabel = "For the Firm", pa
           <div className="border-t border-gray-500 w-full sm:w-40 pt-1 mx-auto">
             {companyLabel}
             <br />
-            Authorized Signatory
+            {t("bill.authorizedSignatory", "Authorized Signatory")}
           </div>
         </div>
       </div>

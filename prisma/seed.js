@@ -172,6 +172,173 @@ async function main() {
     }
   }
 
+  // Individual-screen bilingual labels (AE-23) -- follow-on to AE-19/AE-20
+  // once the business found only the nav bar was actually reading from the
+  // toggle. Same rule as chromeLabels: not BRD-sourced, draft Tamil for
+  // review via the Translations page, only fills in if EN row is new or TA
+  // is currently blank (never overwrites an admin edit).
+  const appLabels = [
+    // Actions / buttons (shared across screens)
+    { key: "action.print", en: "Print", ta: "அச்சிடு" },
+    { key: "action.downloadPdf", en: "Download PDF", ta: "PDF பதிவிறக்கம்" },
+    { key: "action.cancel", en: "Cancel", ta: "ரத்து செய்" },
+    { key: "action.save", en: "Save", ta: "சேமி" },
+    { key: "action.add", en: "Add", ta: "சேர்" },
+    { key: "action.addVehicle", en: "Add Vehicle", ta: "வாகனம் சேர்" },
+    { key: "action.generateBill", en: "Generate Bill", ta: "ரசீது உருவாக்கு" },
+    { key: "action.generateSalesBill", en: "Generate Sales Bill", ta: "விற்பனை ரசீது உருவாக்கு" },
+    { key: "action.saveAuctionEntry", en: "Save Auction Entry", ta: "ஏலப் பதிவை சேமி" },
+    { key: "action.saveSettings", en: "Save Settings", ta: "அமைப்புகளை சேமி" },
+    { key: "action.backToHistory", en: "Back to Generate / History", ta: "உருவாக்கம் / வரலாற்றுக்கு திரும்பு" },
+    { key: "action.view", en: "View", ta: "காண்க" },
+    { key: "action.addSaleLine", en: "+ Add sale line", ta: "+ விற்பனை வரி சேர்" },
+    { key: "action.addFarmerAgent", en: "+ Add new Farmer/Agent…", ta: "+ புதிய விவசாயி/முகவரைச் சேர்…" },
+    { key: "action.addPlantainType", en: "+ Add new Plantain Type…", ta: "+ புதிய வாழைக்காய் வகையைச் சேர்…" },
+    { key: "action.addStockType", en: "+ Add new Stock Type…", ta: "+ புதிய சரக்கு வகையைச் சேர்…" },
+    { key: "action.addCustomer", en: "+ Add new Customer…", ta: "+ புதிய வாடிக்கையாளரைச் சேர்…" },
+
+    // Form fields / placeholders
+    { key: "form.vehicle", en: "Vehicle", ta: "வாகனம்" },
+    { key: "form.farmerAgent", en: "Farmer/Agent", ta: "விவசாயி/முகவர்" },
+    { key: "form.stockType", en: "Stock Type", ta: "சரக்கு வகை" },
+    { key: "form.customer", en: "Customer", ta: "வாடிக்கையாளர்" },
+    { key: "form.qty", en: "Qty", ta: "அளவு" },
+    { key: "form.selectCustomer", en: "Select customer", ta: "வாடிக்கையாளரைத் தேர்ந்தெடு" },
+    { key: "form.selectVehicle", en: "Select vehicle", ta: "வாகனத்தைத் தேர்ந்தெடு" },
+    { key: "form.farmerAgentName", en: "Farmer/Agent name", ta: "விவசாயி/முகவர் பெயர்" },
+    { key: "form.phoneOptional", en: "Phone (optional)", ta: "தொலைபேசி (விருப்பம்)" },
+    { key: "form.customerName", en: "Customer name", ta: "வாடிக்கையாளர் பெயர்" },
+    { key: "form.name", en: "Name", ta: "பெயர்" },
+    { key: "form.phone", en: "Phone", ta: "தொலைபேசி" },
+    { key: "form.code", en: "Code", ta: "குறியீடு" },
+    { key: "form.displayName", en: "Display name", ta: "காட்சிப் பெயர்" },
+    { key: "form.initials", en: "Initials", ta: "குறியீடு" },
+    { key: "form.commissionOverride", en: "Commission (override, ₹)", ta: "கமிஷன் (மேலெழுதல், ₹)" },
+    { key: "form.vehicleFareOverride", en: "Vehicle Fare (₹)", ta: "வாகன வாடகை (₹)" },
+    { key: "form.weighingCharges", en: "Weighing Charges (₹)", ta: "எடைபோடும் கட்டணம் (₹)" },
+    { key: "form.coolieCharges", en: "Coolie / Labor Charges (₹)", ta: "கூலி / வேலைக் கட்டணம் (₹)" },
+    { key: "form.marketFee", en: "Market Fee (₹)", ta: "சந்தை கட்டணம் (₹)" },
+
+    // Page headings / static sections
+    { key: "page.addVehicleArrival", en: "Add a new vehicle/arrival", ta: "புதிய வாகன வருகையைச் சேர்" },
+    { key: "page.saleLines", en: "Sale lines", ta: "விற்பனை வரிகள்" },
+    { key: "page.total", en: "Total", ta: "மொத்தம்" },
+    { key: "page.billHistory", en: "Bill History", ta: "ரசீது வரலாறு" },
+    { key: "page.billingSettings", en: "Billing Settings", ta: "பில்லிங் அமைப்புகள்" },
+    {
+      key: "page.billingSettingsNote",
+      en: "This letterhead and footer text appears on every printed Customer Bill and Sales Bill.",
+      ta: "இந்த letterhead மற்றும் அடிக்குறிப்பு உரை ஒவ்வொரு அச்சிடப்பட்ட வாடிக்கையாளர் ரசீது மற்றும் விற்பனை ரசீதிலும் தோன்றும்.",
+    },
+    {
+      key: "page.deductionsOptional",
+      en: "Deductions (optional overrides — leave blank to use defaults)",
+      ta: "கழிவுகள் (விருப்ப மேலெழுதல் — இயல்புநிலைக்கு காலியாக விடவும்)",
+    },
+    {
+      key: "page.footerNoteLabel",
+      en: "Footer Note / Terms (printed at the bottom of every bill)",
+      ta: "அடிக்குறிப்பு / விதிமுறைகள் (ஒவ்வொரு ரசீதின் கீழும் அச்சிடப்படும்)",
+    },
+    {
+      key: "page.translationsIntro",
+      en: "English text is the reference (seeded from the BRD's bilingual label dictionary) and can't be changed here. Edit the Tamil column and save -- the change applies everywhere immediately, no deploy needed.",
+      ta: "ஆங்கில உரை குறிப்புத் தரவாக உள்ளது (BRD-இன் இருமொழி லேபிள் அகராதியிலிருந்து சேமிக்கப்பட்டது) மற்றும் இங்கே மாற்ற முடியாது. தமிழ் நெடுவரிசையைத் திருத்தி சேமிக்கவும் — மாற்றம் உடனடியாக அனைத்திடமும் பொருந்தும், deploy தேவையில்லை.",
+    },
+    { key: "page.searchPlaceholder", en: "Search by key or English text…", ta: "விசை அல்லது ஆங்கில உரையால் தேடு…" },
+    { key: "page.noLabelsMatch", en: "No labels match", ta: "பொருத்தமான லேபிள்கள் இல்லை" },
+    { key: "page.keyColumn", en: "Key", ta: "விசை" },
+    { key: "page.englishColumn", en: "English", ta: "ஆங்கிலம்" },
+    { key: "page.tamilColumn", en: "Tamil", ta: "தமிழ்" },
+    { key: "page.loading", en: "Loading…", ta: "ஏற்றுகிறது…" },
+
+    // Table column headers
+    { key: "col.plantain", en: "Plantain", ta: "வாழைக்காய்" },
+    { key: "col.stock", en: "Stock", ta: "சரக்கு" },
+    { key: "col.buyer", en: "Buyer", ta: "வாங்குபவர்" },
+    { key: "col.period", en: "Period", ta: "காலம்" },
+    { key: "col.netPayable", en: "Net Payable", ta: "நிகர செலுத்த வேண்டியது" },
+
+    // Messages
+    {
+      key: "msg.noUnbilledLines",
+      en: "No unbilled sale lines for this customer/date.",
+      ta: "இந்த வாடிக்கையாளர்/தேதிக்கு பில் செய்யப்படாத விற்பனை வரிகள் இல்லை.",
+    },
+    { key: "msg.noCustomerBillsYet", en: "No customer bills generated yet.", ta: "இதுவரை வாடிக்கையாளர் ரசீதுகள் உருவாக்கப்படவில்லை." },
+    { key: "msg.noSalesBillsYet", en: "No sales bills generated yet.", ta: "இதுவரை விற்பனை ரசீதுகள் உருவாக்கப்படவில்லை." },
+    {
+      key: "msg.billAlreadyExistsCustomer",
+      en: "One or more of these sale lines are already on a bill — see Bill History below to view it.",
+      ta: "இந்த விற்பனை வரிகளில் ஒன்று அல்லது அதற்கு மேற்பட்டவை ஏற்கனவே ஒரு ரசீதில் உள்ளன — கீழே உள்ள ரசீது வரலாற்றில் காணவும்.",
+    },
+    {
+      key: "msg.billAlreadyExistsSales",
+      en: "This vehicle's sale lines for this date are already on a sales bill — see Bill History below to view it.",
+      ta: "இந்த வாகனத்தின் இந்த தேதிக்கான விற்பனை வரிகள் ஏற்கனவே ஒரு விற்பனை ரசீதில் உள்ளன — கீழே உள்ள ரசீது வரலாற்றில் காணவும்.",
+    },
+    { key: "msg.auctionEntrySaved", en: "Auction entry saved.", ta: "ஏலப் பதிவு சேமிக்கப்பட்டது." },
+    { key: "msg.billingSettingsSaved", en: "Billing settings saved.", ta: "பில்லிங் அமைப்புகள் சேமிக்கப்பட்டன." },
+    { key: "msg.onlyAdminBilling", en: "Only Admin users can edit billing settings.", ta: "நிர்வாகிகள் மட்டுமே பில்லிங் அமைப்புகளைத் திருத்த முடியும்." },
+    { key: "msg.onlyAdminTranslations", en: "Only Admin users can edit translations.", ta: "நிர்வாகிகள் மட்டுமே மொழிபெயர்ப்புகளைத் திருத்த முடியும்." },
+    { key: "msg.pickFarmerAgentFirst", en: "Pick or add a Farmer/Agent first.", ta: "முதலில் ஒரு விவசாயி/முகவரைத் தேர்ந்தெடுக்கவும் அல்லது சேர்க்கவும்." },
+    { key: "msg.nothingToSave", en: "Nothing to save.", ta: "சேமிக்க எதுவும் இல்லை." },
+
+    // Bill/letterhead-specific (shared BillHeader/BillFooter components)
+    { key: "bill.tagline", en: "Commission Agent — Plantain & Fruits", ta: "கமிஷன் முகவர் — வாழைப்பழம் & பழங்கள்" },
+    { key: "bill.forTheFirm", en: "For the Firm", ta: "நிறுவனத்திற்காக" },
+    { key: "bill.authorizedSignatory", en: "Authorized Signatory", ta: "அங்கீகரிக்கப்பட்ட கையொப்பமிடுபவர்" },
+    { key: "bill.buyerSignature", en: "Buyer Signature", ta: "வாங்குபவர் கையொப்பம்" },
+    { key: "bill.farmerAgentSignature", en: "Farmer / Agent Signature", ta: "விவசாயி / முகவர் கையொப்பம்" },
+    { key: "bill.buyerLabel", en: "Buyer", ta: "வாங்குபவர்" },
+    { key: "bill.farmerAgentLabel", en: "Farmer / Agent", ta: "விவசாயி / முகவர்" },
+    { key: "bill.vehicleLabel", en: "Vehicle", ta: "வாகனம்" },
+    { key: "bill.lessWeighingCharges", en: "Less: Weighing Charges", ta: "கழிக்க: எடைபோடும் கட்டணம்" },
+    { key: "bill.lessCoolieCharges", en: "Less: Coolie Charges", ta: "கழிக்க: கூலிக் கட்டணம்" },
+    { key: "bill.lessMarketFee", en: "Less: Market Fee", ta: "கழிக்க: சந்தை கட்டணம்" },
+
+    // Masters tabs
+    { key: "masters.tabCustomers", en: "Customers", ta: "வாடிக்கையாளர்கள்" },
+    { key: "masters.tabFarmersAgents", en: "Farmers / Agents", ta: "விவசாயிகள் / முகவர்கள்" },
+    { key: "masters.tabPlantainTypes", en: "Plantain Types", ta: "வாழைக்காய் வகைகள்" },
+    { key: "masters.tabStockTypes", en: "Stock Types", ta: "சரக்கு வகைகள்" },
+
+    // Billing Settings field labels
+    { key: "settings.firmName", en: "Firm Name", ta: "நிறுவனப் பெயர்" },
+    { key: "settings.addressLine1", en: "Address Line 1", ta: "முகவரி வரி 1" },
+    { key: "settings.addressLine2", en: "Address Line 2", ta: "முகவரி வரி 2" },
+    { key: "settings.city", en: "City", ta: "நகரம்" },
+    { key: "settings.state", en: "State", ta: "மாநிலம்" },
+    { key: "settings.pincode", en: "Pincode", ta: "அஞ்சல் குறியீடு" },
+    { key: "settings.email", en: "Email", ta: "மின்னஞ்சல்" },
+    { key: "settings.gstin", en: "GSTIN", ta: "GSTIN" },
+    { key: "settings.apmcLicenseNo", en: "APMC / Market Licence No.", ta: "APMC / சந்தை உரிம எண்" },
+    { key: "settings.bankName", en: "Bank Name", ta: "வங்கியின் பெயர்" },
+    { key: "settings.bankAccountNo", en: "Bank Account No.", ta: "வங்கி கணக்கு எண்" },
+    { key: "settings.bankIfsc", en: "Bank IFSC", ta: "வங்கி IFSC" },
+  ];
+
+  for (const l of appLabels) {
+    await prisma.labelI18n.upsert({
+      where: { labelKey_lang: { labelKey: l.key, lang: "EN" } },
+      update: {},
+      create: { labelKey: l.key, lang: "EN", labelText: l.en },
+    });
+    const existingTa = await prisma.labelI18n.findUnique({
+      where: { labelKey_lang: { labelKey: l.key, lang: "TA" } },
+    });
+    if (!existingTa) {
+      await prisma.labelI18n.create({
+        data: { labelKey: l.key, lang: "TA", labelText: l.ta },
+      });
+    } else if (existingTa.labelText === "") {
+      await prisma.labelI18n.update({
+        where: { labelKey_lang: { labelKey: l.key, lang: "TA" } },
+        data: { labelText: l.ta },
+      });
+    }
+  }
+
   console.log("Seed complete. Admin login: admin@arkplantainmundy.local / changeme123");
 }
 
