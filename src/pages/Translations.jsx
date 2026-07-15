@@ -117,12 +117,13 @@ export default function Translations() {
                   <td className="p-2 align-top text-xs text-gray-400 font-mono whitespace-nowrap">
                     {r.labelKey}
                   </td>
-                  <td className="p-2 align-top text-gray-700">{r.en}</td>
+                  <td className="p-2 align-top text-gray-700 max-w-xs">{r.en}</td>
                   <td className="p-2 align-top">
-                    <input
-                      className={`border p-1.5 rounded w-full lang-ta ${
+                    <textarea
+                      className={`border p-2 rounded w-full min-w-[220px] lang-ta resize-y ${
                         r.ta !== r.taOriginal ? "border-amber-400 bg-amber-50" : ""
                       }`}
+                      rows={2}
                       value={r.ta}
                       onChange={(e) => updateTa(r.labelKey, e.target.value)}
                     />
