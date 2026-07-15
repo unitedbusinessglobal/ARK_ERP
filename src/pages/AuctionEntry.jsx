@@ -5,7 +5,14 @@ import { useLanguage } from "../lib/i18n.jsx";
 const NEW_OPTION = "__new__";
 
 export default function AuctionEntry() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  // AE-24: master records (plantain/stock types, farmers/agents, customers)
+  // now carry an optional nameTa -- show it in TA mode wherever the record
+  // is listed, falling back to the English field if no Tamil name was set.
+  function displayName(record, enField = "nameEn") {
+    if (!record) return "";
+    return lang === "TA" && record.nameTa ? record.nameTa : record[enField];
+  }
   const [vehicles, setVehicles] = useState([]);
   const [farmersAgents, setFarmersAgents] = useState([]);
   const [plantainTypes, setPlantainTypes] = useState([]);
@@ -200,7 +207,7 @@ export default function AuctionEntry() {
               <option value="">{t("form.farmerAgent", "Farmer/Agent")}</option>
               {farmersAgents.map((f) => (
                 <option key={f.id} value={f.id}>
-                  {f.name}
+                  {displayName(f, "name")}
                 </option>
               ))}
               <option value={NEW_OPTION}>{t("action.addFarmerAgent", "+ Add new Farmer/Agent…")}</option>
@@ -256,7 +263,7 @@ export default function AuctionEntry() {
               <option value="">{t("form.vehicle", "Vehicle")}</option>
               {vehicles.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.vehicleRef} — {v.farmerAgent?.name}
+                  {v.vehicleRef} — {displayName(v.farmerAgent, "name")}
                 </option>
               ))}
             </select>
@@ -280,7 +287,7 @@ export default function AuctionEntry() {
               <option value="">{t("label.plantainType", "Plantain Type")}</option>
               {plantainTypes.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.nameEn}
+                  {displayName(p)}
                 </option>
               ))}
               <option value={NEW_OPTION}>{t("action.addPlantainType", "+ Add new Plantain Type…")}</option>
@@ -299,7 +306,7 @@ export default function AuctionEntry() {
               <option value="">{t("form.stockType", "Stock Type")}</option>
               {stockTypes.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.nameEn}
+                  {displayName(s)}
                 </option>
               ))}
               <option value={NEW_OPTION}>{t("action.addStockType", "+ Add new Stock Type…")}</option>
@@ -383,7 +390,7 @@ export default function AuctionEntry() {
                     <option value="">{t("form.customer", "Customer")}</option>
                     {customers.map((c) => (
                       <option key={c.id} value={c.id}>
-                        {c.name} ({c.initials})
+                        {displayName(c, "name")} ({c.initials})
                       </option>
                     ))}
                     <option value={NEW_OPTION}>{t("action.addCustomer", "+ Add new Customer…")}</option>

@@ -12,6 +12,7 @@ const TABS = [
     fields: [
       { name: "name", label: "Name", labelKey: "form.name" },
       { name: "initials", label: "Initials", labelKey: "form.initials" },
+      { name: "nameTa", label: "Tamil Name", labelKey: "form.tamilName", lang: "ta" },
     ],
   },
   {
@@ -21,6 +22,7 @@ const TABS = [
     fields: [
       { name: "name", label: "Name", labelKey: "form.name" },
       { name: "phone", label: "Phone", labelKey: "form.phone" },
+      { name: "nameTa", label: "Tamil Name", labelKey: "form.tamilName", lang: "ta" },
     ],
   },
   {
@@ -30,6 +32,7 @@ const TABS = [
     fields: [
       { name: "code", label: "Code", labelKey: "form.code" },
       { name: "nameEn", label: "Name", labelKey: "form.name" },
+      { name: "nameTa", label: "Tamil Name", labelKey: "form.tamilName", lang: "ta" },
     ],
   },
   {
@@ -39,6 +42,7 @@ const TABS = [
     fields: [
       { name: "code", label: "Code", labelKey: "form.code" },
       { name: "nameEn", label: "Name", labelKey: "form.name" },
+      { name: "nameTa", label: "Tamil Name", labelKey: "form.tamilName", lang: "ta" },
     ],
   },
 ];
@@ -94,7 +98,7 @@ export default function Masters() {
         {activeTab.fields.map((f) => (
           <input
             key={f.name}
-            className="border p-2 rounded"
+            className={`border p-2 rounded ${f.lang === "ta" ? "lang-ta" : ""}`}
             placeholder={t(f.labelKey, f.label)}
             value={form[f.name] || ""}
             onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
@@ -118,7 +122,7 @@ export default function Masters() {
           {records.map((r) => (
             <tr key={r.id} className="border-b">
               {activeTab.fields.map((f) => (
-                <td key={f.name} className="py-2 pr-4">
+                <td key={f.name} className={`py-2 pr-4 ${f.lang === "ta" ? "lang-ta" : ""}`}>
                   {r[f.name]}
                 </td>
               ))}

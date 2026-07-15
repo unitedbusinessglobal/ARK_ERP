@@ -19,31 +19,39 @@ async function main() {
     },
   });
 
+  // AE-24: Tamil names for the seeded plantain/stock types. Nendran and
+  // Poovan are Tamil-origin variety names already in common market use;
+  // Robusta is transliterated (no distinct Tamil name); Red Banana uses
+  // the market term "Sevvazhai" rather than a literal translation.
+  // Fill-if-blank only -- never overwrites a nameTa an admin has already
+  // set via the Masters page.
   const plantainTypes = [
-    { code: "NENDRAN", nameEn: "Nendran" },
-    { code: "ROBUSTA", nameEn: "Robusta" },
-    { code: "POOVAN", nameEn: "Poovan" },
-    { code: "RED_BANANA", nameEn: "Red Banana" },
+    { code: "NENDRAN", nameEn: "Nendran", nameTa: "நேந்திரன்" },
+    { code: "ROBUSTA", nameEn: "Robusta", nameTa: "ரோபஸ்தா" },
+    { code: "POOVAN", nameEn: "Poovan", nameTa: "பூவன்" },
+    { code: "RED_BANANA", nameEn: "Red Banana", nameTa: "செவ்வாழை" },
   ];
   for (const pt of plantainTypes) {
-    await prisma.plantainType.upsert({
-      where: { code: pt.code },
-      update: {},
-      create: pt,
-    });
+    const existing = await prisma.plantainType.findUnique({ where: { code: pt.code } });
+    if (!existing) {
+      await prisma.plantainType.create({ data: { code: pt.code, nameEn: pt.nameEn, nameTa: pt.nameTa } });
+    } else if (!existing.nameTa) {
+      await prisma.plantainType.update({ where: { code: pt.code }, data: { nameTa: pt.nameTa } });
+    }
   }
 
   const stockTypes = [
-    { code: "BUNCH", nameEn: "Bunch" },
-    { code: "HAND", nameEn: "Hand" },
-    { code: "BOX", nameEn: "Box" },
+    { code: "BUNCH", nameEn: "Bunch", nameTa: "குலை" },
+    { code: "HAND", nameEn: "Hand", nameTa: "சீப்பு" },
+    { code: "BOX", nameEn: "Box", nameTa: "பெட்டி" },
   ];
   for (const st of stockTypes) {
-    await prisma.stockType.upsert({
-      where: { code: st.code },
-      update: {},
-      create: st,
-    });
+    const existing = await prisma.stockType.findUnique({ where: { code: st.code } });
+    if (!existing) {
+      await prisma.stockType.create({ data: { code: st.code, nameEn: st.nameEn, nameTa: st.nameTa } });
+    } else if (!existing.nameTa) {
+      await prisma.stockType.update({ where: { code: st.code }, data: { nameTa: st.nameTa } });
+    }
   }
 
   // Starter customers and farmers/agents (AE-11) -- without these the
@@ -213,6 +221,7 @@ async function main() {
     { key: "form.code", en: "Code", ta: "குறியீடு" },
     { key: "form.displayName", en: "Display name", ta: "காட்சிப் பெயர்" },
     { key: "form.initials", en: "Initials", ta: "குறியீடு" },
+    { key: "form.tamilName", en: "Tamil Name", ta: "தமிழ் பெயர்" },
     { key: "form.commissionOverride", en: "Commission (override, ₹)", ta: "கமிஷன் (மேலெழுதல், ₹)" },
     { key: "form.vehicleFareOverride", en: "Vehicle Fare (₹)", ta: "வாகன வாடகை (₹)" },
     { key: "form.weighingCharges", en: "Weighing Charges (₹)", ta: "எடைபோடும் கட்டணம் (₹)" },
