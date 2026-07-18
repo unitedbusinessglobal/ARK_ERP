@@ -8,6 +8,8 @@ import CustomerBill from "./pages/CustomerBill.jsx";
 import SalesBill from "./pages/SalesBill.jsx";
 import Settings from "./pages/Settings.jsx";
 import Translations from "./pages/Translations.jsx";
+import Reports from "./pages/Reports.jsx";
+import DataImport from "./pages/DataImport.jsx";
 import { getUser, clearSession } from "./lib/api.js";
 import { useLanguage } from "./lib/i18n.jsx";
 
@@ -74,6 +76,13 @@ function Layout({ children }) {
       <Link to="/masters" onClick={() => setMenuOpen(false)}>
         {t("nav.masters", "Masters")}
       </Link>
+      {/* AE-28: Reports is for ADMIN/BILLING/AUDITOR -- DATA_ENTRY's job is
+          getting the day's auction entered, not reading back trends. */}
+      {["ADMIN", "BILLING", "AUDITOR"].includes(user?.role) && (
+        <Link to="/reports" onClick={() => setMenuOpen(false)}>
+          {t("nav.reports", "Reports")}
+        </Link>
+      )}
       {user?.role === "ADMIN" && (
         <Link to="/settings" onClick={() => setMenuOpen(false)}>
           {t("nav.settings", "Settings")} (Billing)
@@ -82,6 +91,11 @@ function Layout({ children }) {
       {user?.role === "ADMIN" && (
         <Link to="/translations" onClick={() => setMenuOpen(false)}>
           {t("nav.translations", "Translations")}
+        </Link>
+      )}
+      {user?.role === "ADMIN" && (
+        <Link to="/data-import" onClick={() => setMenuOpen(false)}>
+          {t("nav.dataImport", "Data Import")}
         </Link>
       )}
     </>
@@ -154,8 +168,10 @@ export default function App() {
                   <Route path="/customer-bill" element={<CustomerBill />} />
                   <Route path="/sales-bill" element={<SalesBill />} />
                   <Route path="/masters" element={<Masters />} />
+                  <Route path="/reports" element={<Reports />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route path="/translations" element={<Translations />} />
+                  <Route path="/data-import" element={<DataImport />} />
                 </Routes>
               </Layout>
             </RequireAuth>

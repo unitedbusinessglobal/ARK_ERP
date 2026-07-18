@@ -71,6 +71,9 @@ export function computeSalesBillTotals({
   };
 }
 
-function round2(n) {
+// Exported (AE-26/AE-27): payments.js and reports.js both need consistent
+// 2dp rounding for balance-due and aggregation math outside the sales-bill
+// calc flow above.
+export function round2(n) {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }

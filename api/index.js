@@ -24,6 +24,8 @@ import salesBillsRoutes from "../server/routes/salesBills.js";
 import reportsRoutes from "../server/routes/reports.js";
 import settingsRoutes from "../server/routes/settings.js";
 import labelsRoutes from "../server/routes/labels.js";
+import paymentsRoutes from "../server/routes/payments.js";
+import importRoutes from "../server/routes/import.js";
 
 const app = express();
 
@@ -41,6 +43,8 @@ app.use("/api/sales-bills", salesBillsRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/labels", labelsRoutes);
+app.use("/api/payments", paymentsRoutes);
+app.use("/api/import", importRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);

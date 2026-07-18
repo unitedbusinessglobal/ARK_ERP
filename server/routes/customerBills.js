@@ -3,11 +3,19 @@
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../lib/auth.js";
-import { sumSaleLines } from "../lib/calc.js";
+import { sumSaleLines, round2 } from "../lib/calc.js";
 import { nextBillNumber } from "../lib/billNumber.js";
 import { asyncHandler } from "../lib/asyncHandler.js";
 
 const router = Router();
+
+// AE-26: balance due is always derived, never stored -- grandTotal stays
+// immutable, payments are an append-only log (see payments.js).
+function withBalance(bill) {
+  const paidTotal = round2((bill.payments || []).reduce((sum, p) => sum + Number(p.amount), 0));
+  const balanceDue = round2(Number(bill.grandTotal) - paidTotal);
+  return { ...bill, paidTotal, balanceDue };
+}
 
 router.get("/", requireAuth, asyncHandler(async (req, res) => {
   const { customerId, date } = req.query;
@@ -21,10 +29,10 @@ router.get("/", requireAuth, asyncHandler(async (req, res) => {
   }
   const bills = await prisma.customerBill.findMany({
     where,
-    include: { customer: true },
+    include: { customer: true, payments: true },
     orderBy: { generatedAt: "desc" },
   });
-  res.json(bills);
+  res.json(bills.map(withBalance));
 }));
 
 // Fetch/reprint — re-renders from stored data (FR-007).
@@ -33,6 +41,7 @@ router.get("/:id", requireAuth, asyncHandler(async (req, res) => {
     where: { id: req.params.id },
     include: {
       customer: true,
+      payments: { orderBy: { paymentDate: "desc" } },
       lines: {
         include: {
           saleLine: {
@@ -47,7 +56,7 @@ router.get("/:id", requireAuth, asyncHandler(async (req, res) => {
     },
   });
   if (!bill) return res.status(404).json({ error: "Customer bill not found" });
-  res.json(bill);
+  res.json(withBalance(bill));
 }));
 
 router.post("/:id/reprint", requireAuth, requireRole("ADMIN", "BILLING", "AUDITOR"), asyncHandler(async (req, res) => {

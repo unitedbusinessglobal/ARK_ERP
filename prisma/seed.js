@@ -149,6 +149,7 @@ async function main() {
     { key: "nav.customerBill", en: "Customer Bill", ta: "வாடிக்கையாளர் ரசீது" },
     { key: "nav.salesBill", en: "Sales Bill", ta: "விற்பனை ரசீது" },
     { key: "nav.reports", en: "Reports", ta: "அறிக்கைகள்" },
+    { key: "nav.dataImport", en: "Data Import", ta: "தரவு இறக்குமதி" },
     { key: "nav.masters", en: "Masters", ta: "மாஸ்டர் தரவு" },
     { key: "nav.settings", en: "Settings", ta: "அமைப்புகள்" },
     { key: "nav.translations", en: "Translations", ta: "மொழிபெயர்ப்புகள்" },
@@ -325,6 +326,85 @@ async function main() {
     { key: "settings.bankName", en: "Bank Name", ta: "வங்கியின் பெயர்" },
     { key: "settings.bankAccountNo", en: "Bank Account No.", ta: "வங்கி கணக்கு எண்" },
     { key: "settings.bankIfsc", en: "Bank IFSC", ta: "வங்கி IFSC" },
+
+    // AE-26: payment tracking on Customer Bill
+    { key: "page.payments", en: "Payments", ta: "பணம் செலுத்துதல்கள்" },
+    { key: "col.balanceDue", en: "Balance Due", ta: "செலுத்த வேண்டிய இருப்பு" },
+    { key: "col.paidTotal", en: "Paid", ta: "செலுத்தப்பட்டது" },
+    { key: "col.method", en: "Method", ta: "முறை" },
+    { key: "col.note", en: "Note", ta: "குறிப்பு" },
+    { key: "action.recordPayment", en: "Record Payment", ta: "பணம் செலுத்துதலைப் பதிவு செய்" },
+    { key: "form.methodPlaceholder", en: "Cash/UPI/…", ta: "பணம்/UPI/…" },
+    { key: "msg.enterValidAmount", en: "Enter a valid payment amount.", ta: "செல்லுபடியாகும் தொகையை உள்ளிடவும்." },
+
+    // AE-28: Reports dashboard
+    { key: "reports.day", en: "Day", ta: "நாள்" },
+    { key: "reports.week", en: "Week", ta: "வாரம்" },
+    { key: "reports.month", en: "Month", ta: "மாதம்" },
+    { key: "reports.year", en: "Year", ta: "ஆண்டு" },
+    { key: "reports.from", en: "From", ta: "இருந்து" },
+    { key: "reports.to", en: "To", ta: "வரை" },
+    { key: "action.apply", en: "Apply", ta: "பயன்படுத்து" },
+    { key: "reports.salesTitle", en: "Sales Report", ta: "விற்பனை அறிக்கை" },
+    { key: "reports.salesTotal", en: "Sales Total", ta: "மொத்த விற்பனை" },
+    { key: "reports.noData", en: "No data for this range.", ta: "இந்த வரம்பிற்கு தரவு இல்லை." },
+    { key: "reports.defaultersTitle", en: "Top Pending Balance — Buyers", ta: "அதிக நிலுவைத் தொகை — வாங்குபவர்கள்" },
+    { key: "reports.topN", en: "Show top", ta: "காட்டு (மேல்)" },
+    {
+      key: "reports.noOutstandingBalances",
+      en: "No outstanding balances — every buyer is paid up.",
+      ta: "நிலுவைத் தொகைகள் இல்லை — அனைத்து வாங்குபவர்களும் செலுத்திவிட்டனர்.",
+    },
+    { key: "reports.billCount", en: "Bills", ta: "ரசீதுகள்" },
+    { key: "reports.totalBilled", en: "Total Billed", ta: "மொத்த ரசீது தொகை" },
+    { key: "reports.yoyTitle", en: "Year-over-Year Sales Trend", ta: "ஆண்டுக்கு ஆண்டு விற்பனை போக்கு" },
+    {
+      key: "reports.pnlTitle",
+      en: "PNL Trend (Commission + Fee Income)",
+      ta: "PNL போக்கு (கமிஷன் + கட்டண வருமானம்)",
+    },
+    {
+      key: "reports.pnlNote",
+      en: "This is a commission-agent business, not a buy/sell reseller -- there's no separate cost price. \"PNL\" here is the mundy's own income: commission plus vehicle fare, weighing, coolie and market fee collected.",
+      ta: "இது ஒரு கமிஷன் முகவர் தொழில், வாங்கி-விற்கும் தொழில் அல்ல — தனி விலை (cost price) இல்லை. இங்கு \"PNL\" என்பது மண்டியின் சொந்த வருமானம்: கமிஷன் மற்றும் வாகன வாடகை, எடைபோடும், கூலி, சந்தை கட்டணம் ஆகியவை சேர்த்து.",
+    },
+    { key: "reports.totalIncome", en: "Total Income", ta: "மொத்த வருமானம்" },
+    { key: "reports.priceTrendTitle", en: "Price Trend by Variety", ta: "வகைவாரியாக விலை போக்கு" },
+    { key: "reports.yearsBack", en: "Years", ta: "ஆண்டுகள்" },
+    {
+      key: "reports.noPriceHistory",
+      en: "No price history yet for this range -- backfill historical auction data via Data Import to populate this chart.",
+      ta: "இந்த வரம்பிற்கு விலை வரலாறு இன்னும் இல்லை — இந்த வரைபடத்தை நிரப்ப தரவு இறக்குமதி வழியாக பழைய ஏலத் தரவை சேர்க்கவும்.",
+    },
+    { key: "reports.previewRows", en: "Preview", ta: "முன்னோட்டம்" },
+    { key: "reports.rowsFound", en: "rows found", ta: "வரிசைகள் கண்டறியப்பட்டன" },
+    { key: "reports.previewTruncated", en: "Showing first 10 of", ta: "முதல் 10 காட்டப்படுகிறது, மொத்தம்" },
+    { key: "reports.importing", en: "Importing…", ta: "இறக்குமதி செய்கிறது…" },
+    { key: "reports.rowsImported", en: "rows imported", ta: "வரிசைகள் இறக்குமதி செய்யப்பட்டன" },
+    { key: "reports.rowsFailed", en: "rows failed", ta: "வரிசைகள் தோல்வியடைந்தன" },
+    { key: "reports.rowNum", en: "Row", ta: "வரிசை" },
+    { key: "reports.errorMessage", en: "Error", ta: "பிழை" },
+    {
+      key: "msg.onlyReportsRoles",
+      en: "Reports are available to Admin, Billing and Auditor users.",
+      ta: "அறிக்கைகள் நிர்வாகி, பில்லிங் மற்றும் தணிக்கையாளர் பயனர்களுக்கு மட்டுமே கிடைக்கும்.",
+    },
+
+    // AE-29: Data Import
+    { key: "action.downloadTemplate", en: "Download Template (.xlsx)", ta: "வார்ப்புருவைப் பதிவிறக்கு (.xlsx)" },
+    { key: "action.uploadFilledTemplate", en: "Upload filled-in template", ta: "நிரப்பப்பட்ட வார்ப்புருவைப் பதிவேற்று" },
+    { key: "action.import", en: "Import", ta: "இறக்குமதி செய்" },
+    {
+      key: "page.dataImportIntro",
+      en: "Bulk-upload historical auction transactions to backfill reports (e.g. the price trend chart) with data from before this system was in use. Each row becomes a real transaction, exactly like manual Auction Entry -- Plantain Type and Stock Type codes must already exist in Masters; vehicles, farmers/agents and customers not already in Masters are created automatically.",
+      ta: "இந்த முறைமை பயன்பாட்டிற்கு முந்தைய தரவுகளுடன் அறிக்கைகளை (எ.கா. விலை போக்கு வரைபடம்) நிரப்ப பழைய ஏல பரிவர்த்தனைகளை மொத்தமாக பதிவேற்றவும். ஒவ்வொரு வரிசையும் ஒரு உண்மையான பரிவர்த்தனையாக மாறும், கைமுறை ஏலப் பதிவு போலவே — வாழைக்காய் வகை மற்றும் சரக்கு வகை குறியீடுகள் ஏற்கனவே மாஸ்டரில் இருக்க வேண்டும்; மாஸ்டரில் இல்லாத வாகனங்கள், விவசாயிகள்/முகவர்கள் மற்றும் வாடிக்கையாளர்கள் தானாகவே உருவாக்கப்படும்.",
+    },
+    { key: "msg.onlyAdminImport", en: "Only Admin users can bulk-import historical data.", ta: "நிர்வாகிகள் மட்டுமே பழைய தரவை மொத்தமாக இறக்குமதி செய்ய முடியும்." },
+    {
+      key: "msg.noRowsFound",
+      en: "No data rows found in the sheet (only a header row, or the sheet is empty).",
+      ta: "தாளில் தரவு வரிசைகள் எதுவும் இல்லை (தலைப்பு வரிசை மட்டும், அல்லது தாள் காலியாக உள்ளது).",
+    },
   ];
 
   for (const l of appLabels) {
