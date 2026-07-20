@@ -405,6 +405,23 @@ async function main() {
       en: "No data rows found in the sheet (only a header row, or the sheet is empty).",
       ta: "தாளில் தரவு வரிசைகள் எதுவும் இல்லை (தலைப்பு வரிசை மட்டும், அல்லது தாள் காலியாக உள்ளது).",
     },
+
+    // Calendar month names (0-11) -- used by the Reports > YoY sales trend
+    // chart's x-axis. Standard Tamil transliterations of the Gregorian
+    // month names (business/calendar usage), not the traditional Tamil
+    // calendar month names -- auction dates are Gregorian.
+    { key: "month.jan", en: "Jan", ta: "ஜனவரி" },
+    { key: "month.feb", en: "Feb", ta: "பிப்ரவரி" },
+    { key: "month.mar", en: "Mar", ta: "மார்ச்" },
+    { key: "month.apr", en: "Apr", ta: "ஏப்ரல்" },
+    { key: "month.may", en: "May", ta: "மே" },
+    { key: "month.jun", en: "Jun", ta: "ஜூன்" },
+    { key: "month.jul", en: "Jul", ta: "ஜூலை" },
+    { key: "month.aug", en: "Aug", ta: "ஆகஸ்ட்" },
+    { key: "month.sep", en: "Sep", ta: "செப்டம்பர்" },
+    { key: "month.oct", en: "Oct", ta: "அக்டோபர்" },
+    { key: "month.nov", en: "Nov", ta: "நவம்பர்" },
+    { key: "month.dec", en: "Dec", ta: "டிசம்பர்" },
   ];
 
   for (const l of appLabels) {

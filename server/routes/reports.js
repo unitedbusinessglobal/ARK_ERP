@@ -130,11 +130,14 @@ router.get("/sales-yoy", requireAuth, requireReportsRole, asyncHandler(async (re
     totals[key] = (totals[key] || 0) + Number(line.amount);
   }
 
+  // English abbreviation is a fallback label only -- monthIndex (0-11) lets
+  // the frontend render a Tamil month name via t() when lang=TA.
   const monthNames = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
   const data = monthNames.map((label, i) => ({
     month: label,
+    monthIndex: i,
     current: round2(totals[`${year}-${i}`] || 0),
     previous: round2(totals[`${prevYear}-${i}`] || 0),
   }));

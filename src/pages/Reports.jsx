@@ -20,6 +20,22 @@ import { useLanguage } from "../lib/i18n.jsx";
 
 const GROUP_OPTIONS = ["day", "week", "month", "year"];
 const CHART_COLORS = ["#15803d", "#b45309", "#1d4ed8", "#be185d", "#0891b2", "#7c3aed", "#ca8a04", "#4d7c0f"];
+// 12 calendar month names, keyed 0-11 -- t() key + English fallback for each,
+// used to render the YoY chart's month axis in Tamil when lang=TA.
+const MONTH_KEYS = [
+  ["month.jan", "Jan"],
+  ["month.feb", "Feb"],
+  ["month.mar", "Mar"],
+  ["month.apr", "Apr"],
+  ["month.may", "May"],
+  ["month.jun", "Jun"],
+  ["month.jul", "Jul"],
+  ["month.aug", "Aug"],
+  ["month.sep", "Sep"],
+  ["month.oct", "Oct"],
+  ["month.nov", "Nov"],
+  ["month.dec", "Dec"],
+];
 
 function currency(n) {
   return `₹${Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -93,6 +109,12 @@ export default function Reports() {
     loadYoy();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [yoyYear]);
+  // Recomputed on every render (not stored state) so toggling EN/TA updates
+  // the chart's month labels immediately without refetching.
+  const yoyChartData = yoyData.map((d) => {
+    const [key, fallback] = MONTH_KEYS[d.monthIndex] || [];
+    return { ...d, monthLabel: key ? t(key, fallback) : d.month };
+  });
 
   // ---- 4. PNL trend (mundy's commission + fee income) ----------------
   const [pnlGroupBy, setPnlGroupBy] = useState("month");
@@ -242,9 +264,9 @@ export default function Reports() {
           </div>
         </div>
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={yoyData}>
+          <LineChart data={yoyChartData}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+            <XAxis dataKey="monthLabel" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip formatter={(v) => currency(v)} />
             <Legend />
